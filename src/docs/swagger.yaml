@@ -1,0 +1,75 @@
+openapi: 3.0.0
+info:
+  title: Dashboard API Documentation
+  description: API docs for Dashboard project (Login, Projects, Blogs, Skills, etc.)
+  version: 1.0.0
+  contact:
+    name: Md Afzal Ansari
+    email: mdafzal14777@gmail.com
+servers:
+  - url: http://localhost:5000
+    description: Local server
+
+paths:
+  /user/login:
+    post:
+      summary: User Login
+      description: Allows a user to log in using email and password.
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "afzal@gmail.com"
+                password:
+                  type: string
+                  example: "Afzal@123"
+      responses:
+        "200":
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIs..."
+        "401":
+          description: Invalid credentials
+
+  /user/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "Md Afzal Ansari"
+                email:
+                  type: string
+                  example: "mdafzal14777@gmail.com"
+                username:
+                  type: string
+                  example: "afzal14786"
+                password:
+                  type: string
+                  example: "Strong@123"
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          description: Bad request or validation failed
