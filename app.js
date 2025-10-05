@@ -4,7 +4,7 @@ import cors from "cors";
 import session from "express-session";
 import compression from "compression";
 import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
+// import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
@@ -48,7 +48,9 @@ app.use(
 // Middleware
 app.use(express.json()); 
 app.use(helmet()); // secure headers
-app.use(mongoSanitize()); // prevent NoSQL injection
+// app.use(mongoSanitize({
+//   replaceWith: '_'
+// })); // prevent NoSQL injection
 app.use(compression()); // optimize response size
 
 // Rate Limiter (Security)
@@ -81,7 +83,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Routes
 app.get("/", (req, res) => {
-  res.send("🚀 Backend API is running successfully!");
+  res.send("Backend API is running successfully!");
 });
 
 // Database Connection
