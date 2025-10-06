@@ -44,6 +44,8 @@ export const verifyOtp = async (req, res) => {
       isVerified: true,
     });
 
+    console.log(otpData.password);
+
     // delete temporary data
     await OtpCodeModel.deleteOne({ email });
 

@@ -14,7 +14,8 @@ import { fileURLToPath } from "url";
 
 
 import connectDB from "./src/config/database.js";
-import registerRoute from "./src/routes/user.route.js";
+import registerRoute from "./src/routes/user/register.user.route.js";
+import loginRoute from "./src/routes/user/login.user.route.js";
 
 // environment Setup
 dotenv.config({ quiet: true });
@@ -91,6 +92,9 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // register + verify the otp
 app.use("/api/v1/auth/user", registerRoute);
+
+// login routes {email + password}
+app.use("/api/v1/auth/user", loginRoute);
 
 // routes
 app.get("/", (req, res) => {
