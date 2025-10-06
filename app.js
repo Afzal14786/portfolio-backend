@@ -1,7 +1,8 @@
-import express from "express";
+import express, {urlencoded} from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import session from "express-session";
+import cookieParser from "cookie-parser";
 import compression from "compression";
 import helmet from "helmet";
 // import mongoSanitize from "express-mongo-sanitize";
@@ -10,7 +11,10 @@ import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import path from "path";
 import { fileURLToPath } from "url";
+
+
 import connectDB from "./src/config/database.js";
+import registerRoute from "./src/routes/user.route.js";
 
 // environment Setup
 dotenv.config({ quiet: true });
@@ -31,7 +35,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // allow requests like Postman
+      if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       } else {
@@ -47,6 +51,7 @@ app.use(
 
 // Middleware
 app.use(express.json()); 
+app.use(cookieParser());
 app.use(helmet()); // secure headers
 // app.use(mongoSanitize({
 //   replaceWith: '_'
@@ -75,13 +80,19 @@ app.use(
   })
 );
 
+app.use(urlencoded({extended: true}));
+
 // Swagger Documentation
 const swaggerDocument = YAML.load(
   path.join(__dirname, "./src/docs/swagger.yaml")
 );
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Routes
+
+// register + verify the otp
+app.use("/api/v1/auth/user", registerRoute);
+
+// routes
 app.get("/", (req, res) => {
   res.send("Backend API is running successfully!");
 });
@@ -89,5 +100,4 @@ app.get("/", (req, res) => {
 // Database Connection
 connectDB();
 
-// Export App
 export default app;

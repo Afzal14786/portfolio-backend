@@ -1,5 +1,7 @@
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
+dotenv.config();
 /**
  * latter on the Oauth will introduce in this project
  */

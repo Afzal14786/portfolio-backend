@@ -2,11 +2,11 @@ import mongoose from "mongoose";
 import crypto from "crypto";
 
 export const userSchema = new mongoose.Schema({
-  user_id: {
-    type: String,
-    unique: true,
-    required: true,
-  },
+  // user_id: {
+  //   type: String,
+  //   unique: true,
+  //   required: true,
+  // },
 
   user_name: {
     type: String,
@@ -51,13 +51,17 @@ export const userSchema = new mongoose.Schema({
     type: String,
     default: "/assets/default_banner.png",
   },
-
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  
   createdAt: {
     type: Date,
     default: Date.now,
   },
 
-  passwordResetToken: string,
+  passwordResetToken: String,
   passwordResetExpires: Date,
 });
 
