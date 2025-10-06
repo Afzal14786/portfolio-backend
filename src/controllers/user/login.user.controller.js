@@ -1,4 +1,5 @@
 import { userModel } from "../../models/user.model.js";
+import { RevokedTokenModel } from "../../schemas/user/RevokeTokenSchema.js";
 import bcrypt from "bcryptjs";
 import {
   generateAccessToken,
@@ -48,5 +49,31 @@ export const login = async (req, res) => {
       accessToken,
       refreshToken,
     },
+  });
+};
+
+// let's logout the user
+
+export const logout = async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+  if (refreshToken) {
+    try {
+      await RevokedTokenModel.create({ token: refreshToken });
+    } catch (err) {
+      console.error(`Error blacklisting the token : ${err.message}`);
+    }
+  }
+
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+  });
+
+  return res.status(200).json({
+    message:
+      "Logged Out Successfully. Refresh Token revoked and cookie cleared.",
+    success: true,
   });
 };

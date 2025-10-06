@@ -1,5 +1,5 @@
 import { userModel } from "../../models/user.model.js";
-import { OtpCodeModel } from "../../schemas/OtpCodeModel.js";
+import { OtpCodeModel } from "../../schemas/user/OtpCodeModel.js";
 import { sendEmail } from "../../emails/sendEmail.js";
 import { generateOtp } from "../../utils/opt.js";
 import bcrypt from "bcryptjs";
