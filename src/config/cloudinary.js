@@ -11,7 +11,8 @@ const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: "portfolio",
-        allowed_formats: ["png", "jpeg", "jpg", "webp"]
+        resource_type: isPdf ? "raw" : "image",
+        allowed_formats: ["png", "jpeg", "jpg", "webp", "pdf"]
     }
 
 });
