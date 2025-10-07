@@ -16,6 +16,7 @@ import { fileURLToPath } from "url";
 import connectDB from "./src/config/database.js";
 import registerRoute from "./src/routes/user/register.user.route.js";
 import loginRoute from "./src/routes/user/login.user.route.js";
+import updateRoute from "./src/routes/user/update.route.js";
 
 // environment Setup
 dotenv.config({ quiet: true });
@@ -95,6 +96,11 @@ app.use("/api/v1/auth/user", registerRoute);
 
 // login routes {email + password}
 app.use("/api/v1/auth/user", loginRoute);
+
+// now update route
+// update password
+app.use("/api/v1/user", updateRoute);
+
 
 // routes
 app.get("/", (req, res) => {

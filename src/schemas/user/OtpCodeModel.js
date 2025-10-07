@@ -1,27 +1,21 @@
 import mongoose from "mongoose";
 
 const otpCodeSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  user_name: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-
-  email: {
+  name: String,
+  user_name: String,
+  email: { type: String, required: true },
+  otp: { type: String, required: true },
+  purpose: {
     type: String,
-    required: true,
-    unique: true,
-  },
-  otp: {
-    type: String,
+    enum: ["register", "update_password", "update_email"],
     required: true,
   },
-
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  password: String,
+  newEmail: String,
+  createdAt: { type: Date, default: Date.now },
 });
 
-// 1-minute expiration
+// Expire OTP after 2 minutes
 otpCodeSchema.index({ createdAt: 1 }, { expireAfterSeconds: 120 });
 
 export const OtpCodeModel = mongoose.model("OtpCode", otpCodeSchema);
