@@ -1,7 +1,6 @@
 import { userModel } from "../../models/user.model.js";
-import { OtpCodeModel } from "../../schemas/user/OtpCodeModel.js";
 import { sendEmail } from "../../emails/sendEmail.js";
-import crypto from "crypto";
+import redis from "../../config/redisClient.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -17,39 +16,39 @@ export const verifyOtp = async (req, res) => {
     });
   }
 
+  const redisKey = `unverified:${email}`;
+
   try {
-    const otpData = await OtpCodeModel.findOne({ email });
-    if (!otpData) {
+    // retrieve the temporary user data from Redis
+    const storedUserDataJson = await redis.get(redisKey);
+    
+    // Check if the key exists (meaning it hasn't expired)
+    if (!storedUserDataJson) {
       return res.status(404).json({
-        message: "Invalid or expired OTP. Please register again",
+        message: "Invalid or expired OTP. Please register again.",
         success: false,
       });
     }
 
-    const submittedOtp = crypto.createHash("sha256").update(otp).digest("hex");
-    if (submittedOtp !== otpData.otp) {
+    const storedUserData = JSON.parse(storedUserDataJson);
+    
+    if (otp !== storedUserData.otp) {
       return res.status(401).json({
         message: "Invalid OTP",
         success: false,
       });
     }
 
-    // create permanent user
+    await redis.del(redisKey);
+
     const newUser = await userModel.create({
-      // assuming you fixed the user_id issue by removing the field or auto-generating it
-      name: otpData.name,
-      user_name: otpData.user_name,
-      email: otpData.email,
-      password: otpData.password,
+      name: storedUserData.name,
+      user_name: storedUserData.user_name,
+      email: storedUserData.email,
+      password: storedUserData.password,
       isVerified: true,
     });
 
-    console.log(otpData.password);
-
-    // delete temporary data
-    await OtpCodeModel.deleteOne({ email });
-
-    // issue Tokens
     const accessToken = generateAccessToken(newUser);
     const refreshToken = generateRefreshToken(newUser);
 
@@ -60,9 +59,7 @@ export const verifyOtp = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // Send Welcome Email
     const subject = "Welcome Aboard! Your Account is Ready 🎉";
-    
     const htmlBody = `
 <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333333; margin: 0; padding: 0;">
     <div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #ffffff;">
@@ -112,6 +109,7 @@ export const verifyOtp = async (req, res) => {
     </div>
 </div>
 `;
+    
     try {
         await sendEmail({
             to: newUser.email,
@@ -123,7 +121,7 @@ export const verifyOtp = async (req, res) => {
         console.warn("Welcome email failed to send:", emailErr.message);
     }
 
-    // final Response
+    // 8. Final Response
     return res.status(200).json({
       message: "Account verified and registered successfully",
       success: true,
@@ -137,7 +135,7 @@ export const verifyOtp = async (req, res) => {
   } catch (err) {
     console.error("Verification error:", err);
     return res.status(500).json({
-      message: "Server error during verification.",
+      message: "Server error during verification or account creation.",
       success: false,
     });
   }

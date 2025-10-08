@@ -1,9 +1,9 @@
 import { userModel } from "../../models/user.model.js";
-import { OtpCodeModel } from "../../schemas/user/OtpCodeModel.js";
 import { sendEmail } from "../../emails/sendEmail.js";
 import { generateOtp } from "../../utils/opt.js";
+import redis from "../../config/redisClient.js";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
+
 
 export const register = async (req, res) => {
   try {
@@ -24,28 +24,24 @@ export const register = async (req, res) => {
       });
     }
 
-    const existingOtp = await OtpCodeModel.findOne({ email });
-    if (existingOtp) {
-      return res.status(400).json({
-        message:
-          "A verification code has already been sent. Please wait one minute or check your spam folder.",
-        success: false,
-      });
-    }
-
     const hashPassword = await bcrypt.hash(password, 10);
     const otp = generateOtp();
-    const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
 
-    // Save OTP entry
-    await OtpCodeModel.create({
-      name,
-      user_name,
-      email,
+    // The temporary user data to be saved to Redis
+    const unverifiedUserData = {
+      name: name,
+      user_name: user_name,
+      email: email,
       password: hashPassword,
-      otp: hashedOtp,
-    });
+      otp: otp,
+    };
+    
+    const redisKey = `unverified:${email}`;
 
+    await redis.set(redisKey, JSON.stringify(unverifiedUserData), "EX", 120);
+
+
+    // send email
     const subject = "Action Required: Verify Your Account";
     const htmlBody = `
 <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333333; margin: 0; padding: 0;">
@@ -76,7 +72,7 @@ export const register = async (req, res) => {
             </div>
         </div>
 
-        <p style="font-size: 15px; color: #dc3545; text-align: center; margin-top: 20px;">
+        <p style="font-size: 15px; color: #e2df15ff; text-align: center; margin-top: 20px;">
             Note: This code is valid for 2 minutes only.
         </p>
         
@@ -84,7 +80,7 @@ export const register = async (req, res) => {
             If you did not initiate this account creation, please ignore this email.
         </p>
         
-        <p style="font-size: 12px; color: #999999; text-align: center; margin-top: 40px;">
+        <p style="font-size: 12px; color: #e4b5b5ff; text-align: center; margin-top: 40px;">
             © ${new Date().getFullYear()} iamafzal.tech
         </p>
         
@@ -99,27 +95,26 @@ export const register = async (req, res) => {
       text: `Your OTP is ${otp}. It expires in 2 minute.`,
     });
 
-    // If email failed
+    // handle email failure and cleanup
     if (!emailSent) {
-      await OtpCodeModel.deleteOne({ email });
+      // if email failed, delete the temporary data from Redis
+      await redis.del(redisKey);
       return res.status(503).json({
         message:
           "Registration failed: Could not send verification email. Please try again later.",
         success: false,
       });
     }
-
-    // Success response — MUST return to stop further execution
-    return res.status(202).json({
-      message:
-        "Registration data saved. Check your email for the verification code.",
+    
+    return res.status(200).json({
+      message: "Registration successful! Please check your email to verify your account.",
       success: true,
-      email,
     });
+
   } catch (err) {
     // even if something throws, avoid double response
     if (res.headersSent) {
-      console.warn("⚠ Headers already sent — skipping second response");
+      console.warn("Headers already sent — skipping second response");
       return;
     }
 
