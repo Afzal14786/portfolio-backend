@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify OTP | TerminalX</title>
+    <meta
+      name="description"
+      content="Verify your one-time password (OTP) securely to continue to TerminalX."
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #1e40af;
+        --secondary: #2563eb;
+        --background: #f9fafb;
+        --text: #1e293b;
+        --border: #e2e8f0;
+        --success: #16a34a;
+        --error: #dc2626;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--background);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+
+      .otp-container {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+        padding: 2.5rem;
+        width: 90%;
+        max-width: 420px;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .otp-container:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin: 0 auto 1rem;
+        box-shadow: 0 3px 8px rgba(37, 99, 235, 0.3);
+      }
+
+      .logo img {
+        width: 70%;
+        height: 70%;
+        object-fit: contain;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+        color: var(--primary);
+        margin-bottom: 0.3rem;
+        letter-spacing: -0.5px;
+      }
+
+      p.lead {
+        color: var(--text);
+        font-size: 0.95rem;
+        margin-bottom: 1.4rem;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 0.9rem;
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        font-size: 1.1rem;
+        text-align: center;
+        outline: none;
+        transition: border 0.25s, box-shadow 0.25s;
+        letter-spacing: 0.2em;
+        font-family: "Roboto Mono", monospace;
+      }
+
+      input[type="text"]:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      }
+
+      .timer {
+        font-size: 0.95rem;
+        color: var(--text);
+        margin: 0.8rem 0 0.3rem;
+      }
+
+      .resend {
+        color: var(--secondary);
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+
+      .resend:hover {
+        color: var(--primary);
+      }
+
+      .resend.disabled {
+        color: #94a3b8;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+
+      button {
+        width: 100%;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 600;
+        border: none;
+        padding: 0.85rem;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 1rem;
+        margin-top: 1.5rem;
+        transition: background 0.3s, transform 0.2s;
+      }
+
+      button:hover {
+        background: var(--secondary);
+        transform: translateY(-2px);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .footer {
+        margin-top: 1.5rem;
+        font-size: 0.85rem;
+        color: #64748b;
+      }
+
+      @media (max-width: 480px) {
+        .otp-container {
+          padding: 1.8rem;
+        }
+        h1 {
+          font-size: 1.4rem;
+        }
+        input[type="text"] {
+          font-size: 1rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="otp-container" role="dialog" aria-labelledby="otp-title">
+      <div class="logo">
+        <img src="../assets/code.png" alt="TerminalX Logo" />
+      </div>
+
+      <h1 id="otp-title">TerminalX</h1>
+      <p class="lead">Enter the 7-digit verification code sent to your email</p>
+
+      <form action="/api/v1/auth/verify-otp" method="POST" id="otp-form" novalidate>
+        <input
+          type="text"
+          name="otp"
+          id="otp"
+          maxlength="7"
+          required
+          value="<%= otpCode || '' %>"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          aria-label="One-time password"
+        />
+
+        <div class="timer">Resend OTP in <span id="countdown">2:00</span></div>
+        <a id="resend" class="resend disabled" href="/api/v1/auth/resend-otp"
+          >Resend OTP</a
+        >
+
+        <button type="submit">Verify OTP</button>
+      </form>
+
+      <p class="footer">Need help? <a href="/support" style="color: var(--secondary);">Contact Support</a></p>
+    </main>
+
+    <script>
+      (function () {
+        let timeLeft = 120;
+        const countdownEl = document.getElementById("countdown");
+        const resendEl = document.getElementById("resend");
+
+        if (!countdownEl || !resendEl) return;
+
+        resendEl.classList.add("disabled");
+        resendEl.setAttribute("aria-disabled", "true");
+
+        function updateDisplay(t) {
+          const m = Math.floor(t / 60);
+          const s = t % 60;
+          countdownEl.textContent = m + ":" + String(s).padStart(2, "0");
+        }
+
+        updateDisplay(timeLeft);
+
+        const interval = setInterval(() => {
+          if (timeLeft <= 0) {
+            clearInterval(interval);
+            countdownEl.textContent = "0:00";
+            resendEl.classList.remove("disabled");
+            resendEl.removeAttribute("aria-disabled");
+            return;
+          }
+          timeLeft--;
+          updateDisplay(timeLeft);
+        }, 1000);
+
+        resendEl.addEventListener("click", (e) => {
+          if (resendEl.classList.contains("disabled")) e.preventDefault();
+        });
+      })();
+    </script>
+  </body>
+</html>

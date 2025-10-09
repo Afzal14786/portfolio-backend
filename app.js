@@ -20,13 +20,13 @@ import updateRoute from "./src/routes/user/update.route.js";
 
 // environment Setup
 dotenv.config({ quiet: true });
+// express app initialization
+const app = express();
 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// express app initialization
-const app = express();
 
 // CORS Configuration
 const allowedOrigins = [
@@ -82,7 +82,10 @@ app.use(
   })
 );
 
-app.use(urlencoded({extended: true}));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+app.use(express.static(path.join(__dirname, "public")));
+app.use(express.urlencoded({ extended: true }));
 
 // Swagger Documentation
 const swaggerDocument = YAML.load(
