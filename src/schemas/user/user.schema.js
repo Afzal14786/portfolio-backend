@@ -42,14 +42,19 @@ export const userSchema = new mongoose.Schema({
     select: false,
   },
 
-  profile_img: {
+  profile_image: {
     type: String,
     default: "/assets/default_user.png",
   },
 
-  banner_img: {
+  banner_image: {
     type: String,
     default: "/assets/default_banner.png",
+  },
+  social_media: {
+    type: Map, // Use a Map to store key-value pairs <platform: link>
+    of: String, // The value (link) will be a string
+    default: {} // Default to an empty object
   },
   isVerified: {
     type: Boolean,

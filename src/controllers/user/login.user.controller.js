@@ -8,6 +8,9 @@ import {
   generateRefreshToken,
 } from "../../utils/token.js";
 
+const PLATFORM_NAME = "TerminalX";
+const LOGO_PATH = '../../assets/code.png';
+
 const REFRESH_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 export const login = async (req, res) => {
@@ -52,7 +55,7 @@ export const login = async (req, res) => {
   <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;"> 
     <!-- Header -->
   <div style="background: linear-gradient(135deg, #0066ff, #00e0ff); padding: 28px 0; text-align: center; border-top-left-radius: 10px; border-top-right-radius: 10px;">
-    <img src=${'../../assets/code.png'} alt="TerminalX Logo" width="70" height="70" style="display: block; margin: 0 auto 10px auto; border-radius: 50%; background: #ffffff22; padding: 8px;">
+    <img src="${LOGO_PATH}" alt="${PLATFORM_NAME}" width="70" height="70" style="display: block; margin: 0 auto 10px auto; border-radius: 50%; background: #ffffff22; padding: 8px;">
     <h1 style="color: #4be6f7ff; font-size: 26px; margin: 0; font-weight: 700; letter-spacing: 1px;">
       TerminalX Login Verification
     </h1>
