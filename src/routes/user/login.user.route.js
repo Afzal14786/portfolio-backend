@@ -1,20 +1,12 @@
 import express from "express";
 const router = express.Router();
-import {login, logout} from "../../controllers/user/login.user.controller.js";
-import {resetPassword, verifyReset} from "../../controllers/user/update.password.controller.js";
-
-import { verifyOtp } from "../../controllers/user/verifyOtp.user.controller.js";
+import {login, logout, verifyLogin} from "../../controllers/user/login.user.controller.js";
 
 
 // login routes
 router.post("/login", login);
+// must verify the otp before login as well as when the user is requesting for update the password at that time as well user have to verify the otp but when user is requesting for reset the password at that time user will received an reset link over the register email id
+router.post("/verify-login", verifyLogin);
 router.post("/logout", logout);
-/**
- * The login feature is not implemented successfully as well as there is significant issues in register and login
- * follow up pendings
- */
-router.post('/verify-otp', verifyOtp);
-router.post("/forgot-password", resetPassword);
-router.post("/reset-password", verifyReset);
 
 export default router;

@@ -61,54 +61,68 @@ export const verifyOtp = async (req, res) => {
 
     const subject = "Welcome Aboard! Your Account is Ready 🎉";
     const htmlBody = `
-<div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333333; margin: 0; padding: 0;">
-    <div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #ffffff;">
-        
-        <h1 style="color: #28a745; font-size: 24px; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #28a745; padding-bottom: 10px;">
-            ${subject}
-        </h1>
-        
-        <p style="font-size: 16px;">
-            Hello <b>${newUser.name}</b>,
-        </p>
+<div style="font-family: 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f4f6f8; padding: 40px 0; text-align: center;">
 
-        <p style="font-size: 16px;">
-            Great news! Your account has been successfully created and verified. You are officially ready to explore everything our service has to offer.
-        </p>
+  <!-- Header -->
+  <div style="background: linear-gradient(135deg, #28a745, #71e18a); padding: 28px 0; border-radius: 10px 10px 0 0; max-width: 600px; margin: 0 auto;">
+    <img src=${'../../assets/code.png'} alt="iamafzal.tech Logo" width="60" style="margin-bottom: 10px;" />
+    <h1 style="color: #ffffff; font-size: 26px; font-weight: 600; margin: 0;">${subject}</h1>
+  </div>
 
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL || "YOUR_LOGIN_URL"}" 
-               style="
-                display: inline-block;
-                padding: 12px 25px;
-                background-color: #007bff; /* Primary Blue */
-                color: #ffffff !important;
-                text-decoration: none;
-                border-radius: 5px;
-                font-weight: bold;
-                font-size: 16px;
-                letter-spacing: 0.5px;
-                cursor: pointer;
-            ">
-                Go to Login
-            </a>
-        </div>
-        
-        <p style="font-size: 15px; margin-top: 20px;">
-            You can now log in using your registered email and password.
-        </p>
-        
-        <p style="font-size: 14px; margin-top: 30px;">
-            If you have any questions, please reply to this email! We're here to help.
-        </p>
-        
-        <p style="font-size: 12px; color: #999999; text-align: center; margin-top: 40px;">
-            © ${new Date().getFullYear()} iamafzal.tech
-        </p>
-        
+  <!-- Body Card -->
+  <div style="background: #ffffff; max-width: 600px; margin: 0 auto; padding: 30px 25px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: left;">
+    
+    <p style="font-size: 16px; color: #333; margin-top: 0;">
+      Hello <b>${newUser.name || "User"}</b>,
+    </p>
+
+    <p style="font-size: 16px; color: #555; margin-bottom: 24px;">
+      🎉 Great news! Your account has been successfully created and verified. You are now officially part of the iamafzal.tech community and ready to explore all the features we offer.
+    </p>
+
+    <!-- Call-to-Action Button -->
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${process.env.FRONTEND_URL || "YOUR_LOGIN_URL"}" 
+         style="
+          display: inline-block;
+          padding: 14px 28px;
+          background: linear-gradient(135deg, #007bff, #00c6ff);
+          color: #ffffff !important;
+          text-decoration: none;
+          border-radius: 6px;
+          font-weight: bold;
+          font-size: 16px;
+          letter-spacing: 0.5px;
+          box-shadow: 0 4px 10px rgba(0,123,255,0.3);
+          transition: all 0.2s ease-in-out;
+        "
+        onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 14px rgba(0,123,255,0.4)';"
+        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 10px rgba(0,123,255,0.3)';"
+      >
+        Go to Login
+      </a>
     </div>
+
+    <p style="font-size: 15px; color: #444; margin-top: 20px;">
+      You can now log in using your registered email and password to get started.
+    </p>
+
+    <p style="font-size: 14px; color: #555; margin-top: 28px;">
+      If you have any questions or need help, feel free to reply to this email. We're always here to support you.
+    </p>
+
+    <!-- Footer -->
+    <div style="margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 12px;">
+      <p style="font-size: 12px; color: #999;">
+        © ${new Date().getFullYear()} iamafzal.tech — All rights reserved.<br/>
+        This is an automated email. Please do not reply.
+      </p>
+    </div>
+
+  </div>
 </div>
 `;
+
     
     try {
         await sendEmail({

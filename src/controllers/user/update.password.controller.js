@@ -35,8 +35,8 @@ export const updatePassword = async (req, res) => {
     const isMatch = await bcrypt.compare(oldPassword, user.password);
 
     if (!isMatch) {
-      return res.status(401).json({ 
-        message: "Incorrect old password.", 
+      return res.status(401).json({
+        message: "Incorrect old password.",
         success: false,
       });
     }
@@ -56,55 +56,66 @@ export const updatePassword = async (req, res) => {
 
     const subject = "Verify OTP to Update Your Password";
     const htmlBody = `
-<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
-    
-    <h1 style="color: #FF8C00; font-size: 24px; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #FF8C00; padding-bottom: 10px;">
-        ${subject}
-    </h1>
-    
-    <p style="font-size: 16px;">
-        Hello <b>${user.name}</b>,
+<div style="font-family: 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f7f9fc; padding: 40px 0; text-align: center;">
+  
+  <!-- Header -->
+  <div style="background: linear-gradient(135deg, #007bff, #00c6ff); padding: 24px 0; border-radius: 10px 10px 0 0; max-width: 600px; margin: 0 auto;">
+    <img src=${'../../assets/code.png'} alt="iamafzal.tech Logo" width="60" style="margin-bottom: 10px;" />
+    <h1 style="color: #fffbe7; font-size: 26px; font-weight: 600; margin: 0;">TerminalX Password Update Verification</h1>
+  </div>
+
+  <!-- Body Card -->
+  <div style="background: #ffffff; max-width: 600px; margin: 0 auto; padding: 30px 25px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: left;">
+
+    <p style="font-size: 16px; color: #333; margin-top: 0;">
+      Hello <b>${user.name}</b>,
     </p>
 
-    <p style="font-size: 16px;">
-        We received a request to change the password for your account. To complete this security action, please use the One-Time Password (OTP) below:
+    <p style="font-size: 15.5px; color: #555; margin-bottom: 24px;">
+      We received a request to change your account password. To confirm this action securely, please use the One-Time Password (OTP) below:
     </p>
 
+    <!-- OTP Card -->
     <div style="text-align: center; margin: 30px 0;">
-        <div style="
-            display: inline-block;
-            padding: 15px 30px;
-            background-color: #FFF3E0; /* Light Orange/Yellow Background */
-            border: 2px dashed #FF8C00;
-            border-radius: 6px;
-            font-size: 30px;
-            font-weight: 700;
-            letter-spacing: 5px;
-            color: #333333;
-            user-select: all;
-        ">
-            ${otp}
-        </div>
+      <div style="
+        display: inline-block;
+        padding: 18px 40px;
+        background: linear-gradient(135deg, #fff1cc, #ffe5b4);
+        border: 2px dashed #ff8c00;
+        border-radius: 8px;
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: 6px;
+        color: #2c2c2c;
+        box-shadow: 0 3px 6px rgba(255, 140, 0, 0.2);
+        user-select: all;
+      ">
+        ${otp}
+      </div>
     </div>
 
-    <p style="font-size: 15px; color: #dc3545; text-align: center; margin-top: 20px;">
-        For your security, this code is valid for **2 minutes** only.
-    </p>
-    
-    <p style="font-size: 15px; margin-top: 30px;">
-        If you **did not request** a password change, please ignore this email immediately. Your current password remains secure.
-    </p>
-    
-    <p style="font-size: 14px; margin-top: 20px; color: #555555;">
-        Thank you,
-        <br>
-        The iamafzal.tech Team
+    <p style="font-size: 14.5px; text-align: center; color: #d9534f;">
+      For your security, this OTP is valid for <b>2 minutes</b> only.
     </p>
 
-    <p style="font-size: 12px; color: #999999; text-align: center; margin-top: 40px;">
-        © ${new Date().getFullYear()} iamafzal.tech | This is an automated security email.
+    <p style="font-size: 15px; color: #444; margin-top: 28px;">
+      If you didn’t request this password change, please ignore this email — your current password will remain safe.
     </p>
-    
+
+    <p style="font-size: 14px; color: #555; margin-top: 24px;">
+      Thank you,<br/>
+      <b>The iamafzal.tech Security Team</b>
+    </p>
+
+    <!-- Footer -->
+    <div style="margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 12px;">
+      <p style="font-size: 12px; color: #999;">
+        © ${new Date().getFullYear()} <b>iamafzal.tech</b> — All rights reserved.<br/>
+        This is an automated email. Please do not reply.
+      </p>
+    </div>
+
+  </div>
 </div>
 `;
 
@@ -165,9 +176,9 @@ export const verifyOtpPassword = async (req, res) => {
 
     // 1. verify OTP
     if (otp !== storedData.otp) {
-      return res.status(401).json({ 
-        message: "Invalid OTP.", 
-        success: false 
+      return res.status(401).json({
+        message: "Invalid OTP.",
+        success: false,
       });
     }
 
