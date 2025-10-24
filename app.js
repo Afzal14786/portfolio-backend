@@ -1,42 +1,55 @@
-import express, {urlencoded} from "express";
+import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import helmet from "helmet";
-// import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-
 import connectDB from "./src/config/database.js";
-import registerRoute from "./src/routes/user/register.user.route.js";
-import loginRoute from "./src/routes/user/login.user.route.js";
-import updateRoute from "./src/routes/user/update.route.js";
 
-// environment Setup
+import routes from "./src/routes/index.js";
+
+// Environment Setup
 dotenv.config({ quiet: true });
-// express app initialization
-const app = express();
 
+// Express app initialization
+const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ==================== SECURITY MIDDLEWARE ====================
+
+// Helmet Configuration for Security Headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
 
 // CORS Configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   process.env.DASHBOARD_URL,
+  "http://localhost:5173", // Add localhost for development
 ].filter(Boolean);
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, postman)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
@@ -47,43 +60,55 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "DELETE", "PATCH", "PUT", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   })
 );
 
-// Middleware
-app.use(express.json()); 
-app.use(cookieParser());
-app.use(helmet()); // secure headers
-// app.use(mongoSanitize({
-//   replaceWith: '_'
-// })); // prevent NoSQL injection
-app.use(compression()); // optimize response size
+// Rate Limiting Configuration
+const createRateLimit = (windowMs, max, message) => {
+  return rateLimit({
+    windowMs,
+    max,
+    message: { 
+      success: false, 
+      message 
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+};
 
-// Rate Limiter (Security)
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 100, // max 100 requests/IP
-  message: "Too many requests, please try again later.",
-});
-app.use(limiter);
+// Apply different rate limits for different endpoints
+const generalLimiter = createRateLimit(15 * 60 * 1000, 100, "Too many requests, please try again later.");
+const authLimiter = createRateLimit(15 * 60 * 1000, 5, "Too many authentication attempts, please try again later.");
+const strictLimiter = createRateLimit(15 * 60 * 1000, 10, "Too many requests to this endpoint.");
+
+// Apply general rate limiting to all routes
+app.use(generalLimiter);
+
+// ==================== BASIC MIDDLEWARE ====================
+app.use(express.json({ limit: "10mb" })); 
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(cookieParser());
+app.use(compression());
 
 // Session Configuration
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "very$-secret",
+    name: 'sessionId',
+    secret: process.env.SESSION_SECRET || "your-very-secure-session-secret-key-here",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false, // Changed to false for security
     cookie: {
-      secure: process.env.NODE_ENV === "production", // HTTPS only in production
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: 'strict',
     },
   })
 );
 
-
-app.use(express.urlencoded({ extended: true }));
+// ==================== ROUTES WITH RATE LIMITING ====================
 
 // Swagger Documentation
 const swaggerDocument = YAML.load(
@@ -91,24 +116,84 @@ const swaggerDocument = YAML.load(
 );
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-
-// register + verify the otp
-app.use("/api/v1/auth/user", registerRoute);
-
-// login routes {email + password}
-app.use("/api/v1/auth/user", loginRoute);
-
-// now update route
-// update password
-app.use("/api/v1/user", updateRoute);
-
-
-// routes
-app.get("/", (req, res) => {
-  res.send("Backend API is running successfully!");
+// Health check route (no rate limiting)
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is healthy and running 🚀",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
-// Database Connection
+// Apply strict rate limiting to auth routes
+app.use("/api/v1/auth", authLimiter);
+
+// Apply specific rate limiting to sensitive routes
+app.use("/api/v1/user/password", strictLimiter);
+app.use("/api/v1/user/email", strictLimiter);
+
+// ==================== MAIN API ROUTES (NEW STRUCTURE) ====================
+app.use("/api/v1", routes);
+
+// ==================== ROOT ROUTE ====================
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "🚀 TerminalX Backend API is running successfully!",
+    version: "1.0.0",
+    documentation: "/api-docs",
+    health: "/health",
+    endpoints: {
+      auth: "/api/v1/auth",
+      user: "/api/v1/user",
+      blog: "/api/v1/blog"
+    }
+  });
+});
+
+// ==================== ERROR HANDLING MIDDLEWARE ====================
+
+// 404 Handler for undefined routes
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`,
+    suggestion: "Check the API documentation at /api-docs"
+  });
+});
+
+// Global error handler
+app.use((error, req, res, next) => {
+  console.error("Global Error Handler:", error);
+
+  // Handle rate limit errors
+  if (error.status === 429) {
+    return res.status(429).json({
+      success: false,
+      message: error.message || "Too many requests, please try again later."
+    });
+  }
+
+  // Handle CORS errors
+  if (error.message === "Not allowed by CORS") {
+    return res.status(403).json({
+      success: false,
+      message: "CORS policy: Access denied from this origin"
+    });
+  }
+
+  // Default error response
+  res.status(error.status || 500).json({
+    success: false,
+    message: process.env.NODE_ENV === 'production' 
+      ? "Internal server error" 
+      : error.message,
+    ...(process.env.NODE_ENV !== 'production' && { stack: error.stack })
+  });
+});
+
+// ==================== DATABASE CONNECTION ====================
 connectDB();
 
 export default app;

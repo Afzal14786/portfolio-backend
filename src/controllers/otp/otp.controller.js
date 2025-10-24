@@ -1,74 +1,191 @@
-import redis from "../../config/redisClient.js";
-import { generateOtp } from "../../utils/opt.js";
-import { sendEmail } from "../../emails/sendEmail.js";
+import { 
+  generateOTP, 
+  verifyOTP, 
+  resendOTP, 
+  getStoredOTPData,
+  OTP_TYPES 
+} from "../../services/otp.service.js";
+import { sendOTPEmail, sendWelcomeEmail } from "../../services/email.service.js";
+import { verifyAndCreateUser, loginUser } from "../../services/auth.service.js";
+import { generateAccessToken, generateRefreshToken } from "../../utils/token.generator.js";
 
-const OTP_EXPIRY_SECONDS = 120; // 2 minutes
+export const requestOTP = async (req, res) => {
+  try {
+    const { email, type, metadata } = req.body;
 
-export const resendOtp = async (req, res) => {
-    // 1. Get email from query parameters
-    const email = req.query.email; // Extracted from /resend-otp?email=...
-
-    if (!email) {
-        // If email is missing, return a 400 error. The frontend will handle the toast/redirect.
-        return res.status(400).json({
-            message: "Email parameter is required for resend action.",
-            success: false,
-        });
+    if (!email || !type) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP type are required"
+      });
     }
 
-    const redisKey = `unverified:${email}`;
-
-    try {
-        // retrieve temporary data from Redis
-        const storedUserDataJson = await redis.get(redisKey);
-        
-        if (!storedUserDataJson) {
-            return res.status(404).json({
-                message: "Verification session expired. Please register again.",
-                success: false,
-            });
-        }
-
-        const storedUserData = JSON.parse(storedUserDataJson);
-        const newOtp = generateOtp();
-
-        // update redis with the new OTP and reset the expiry time
-        storedUserData.otp = newOtp; 
-        await redis.set(redisKey, JSON.stringify(storedUserData), 'EX', OTP_EXPIRY_SECONDS);
-
-        // send the new OTP email
-        const subject = "New OTP Requested: Account Verification";
-        const htmlBody = `Your new verification code is: <b>${newOtp}</b>. It expires in 2 minutes.`;
-        
-        const emailSent = await sendEmail({
-            to: email,
-            subject,
-            html: htmlBody,
-            text: `Your new OTP is ${newOtp}. It expires in 2 minute.`,
-        });
-
-        if (!emailSent) {
-            // Return 503 if we couldn't send the email.
-            return res.status(503).json({
-                message: "Failed to send new OTP email. Check server email configuration.",
-                success: false,
-            });
-        }
-        
-        // The frontend will reset the timer and show a success toast.
-        return res.status(200).json({
-            message: `New OTP has been sent to ${email}.`,
-            success: true,
-            data: {
-                countdown: OTP_EXPIRY_SECONDS 
-            }
-        });
-
-    } catch (err) {
-        console.error("Resend OTP error:", err);
-        return res.status(500).json({
-            message: "An unexpected server error occurred during resend.",
-            success: false,
-        });
+    // Validate OTP type
+    const validTypes = Object.values(OTP_TYPES);
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP type"
+      });
     }
+
+    const result = await generateOTP(email, type, metadata);
+    
+    // Send OTP via email
+    const emailSent = await sendOTPEmail(
+      email, 
+      result.otp, 
+      type, 
+      metadata?.name
+    );
+
+    if (!emailSent) {
+      await invalidateOTP(email, type);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send OTP email. Please try again."
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully",
+      data: {
+        email,
+        type,
+        expiresIn: result.ttl
+      }
+    });
+
+  } catch (error) {
+    console.error("OTP request error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while sending OTP"
+    });
+  }
+};
+
+export const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp, type } = req.body;
+
+    if (!email || !otp || !type) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, OTP, and type are required"
+      });
+    }
+
+    const verification = await verifyOTP(email, otp, type);
+    
+    if (!verification.success) {
+      return res.status(400).json(verification);
+    }
+
+    let responseData = {
+      success: true,
+      message: verification.message
+    };
+
+    // Handle different OTP types
+    switch (type) {
+      case OTP_TYPES.REGISTRATION:
+        const userData = await getStoredOTPData(email, OTP_TYPES.REGISTRATION);
+        if (userData && userData.metadata) {
+          const authResult = await verifyAndCreateUser(userData.metadata);
+          responseData.data = {
+            user: {
+              id: authResult.user._id,
+              user_name: authResult.user.user_name,
+              email: authResult.user.email,
+            },
+            accessToken: authResult.accessToken
+          };
+          
+          // Send welcome email
+          await sendWelcomeEmail(email, userData.metadata.name);
+        }
+        break;
+
+      case OTP_TYPES.LOGIN:
+        const user = await loginUser(email, ''); // Password already verified in login step
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken(user);
+        
+        responseData.data = {
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+          },
+          accessToken,
+          refreshToken
+        };
+        break;
+
+      case OTP_TYPES.PASSWORD_RESET:
+        // Generate password reset token
+        const resetToken = generateAccessToken({ email }); // Short-lived token
+        responseData.data = { resetToken };
+        break;
+
+      default:
+        break;
+    }
+
+    return res.status(200).json(responseData);
+
+  } catch (error) {
+    console.error("OTP verification error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during OTP verification"
+    });
+  }
+};
+
+export const resendOTP = async (req, res) => {
+  try {
+    const { email, type } = req.body;
+
+    if (!email || !type) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP type are required"
+      });
+    }
+
+    const result = await resendOTP(email, type);
+    
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    // Send the new OTP via email
+    const emailSent = await sendOTPEmail(email, result.otp, type);
+
+    if (!emailSent) {
+      await invalidateOTP(email, type);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send OTP email. Please try again."
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "New OTP sent successfully",
+      data: {
+        expiresIn: result.ttl
+      }
+    });
+
+  } catch (error) {
+    console.error("OTP resend error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while resending OTP"
+    });
+  }
 };
