@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 export const resetPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log("Reset password request for:", email);
+    // console.log("Reset password request for:", email);   -- Testing Purpose
     
     if (!email) {
       return res.status(400).json({
@@ -17,7 +17,7 @@ export const resetPassword = async (req, res) => {
     }
 
     const user = await userModel.findOne({ email });
-    console.log("Database query result:", user);
+    // console.log("Database query result:", user);   -- Testing Purpose
     
     if (!user) {
       // Return success even if user doesn't exist for security

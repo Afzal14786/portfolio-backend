@@ -17,8 +17,8 @@ export class EmailService {
     const templateConfig = {
       registration: getRegistrationTemplate(otp, userName),
       login: getLoginTemplate(otp, userName),
-      password_reset: getPasswordResetTemplate(otp, userName),
-      password_update: getPasswordUpdateTemplate(otp, userName),
+      // password_reset: getPasswordResetLinkTemplate(otp, userName),
+      // password_update: getPasswordUpdateTemplate(otp, userName),
       email_update: getEmailUpdateTemplate(otp, userName)
     };
 
@@ -67,16 +67,16 @@ export class EmailService {
   /**
    * Send password changed confirmation
    */
-  static async sendPasswordChangedEmail(email, userName) {
-    const template = getPasswordChangedTemplate(userName);
+  // static async sendPasswordChangedEmail(email, userName) {
+  //   const template = getPasswordChangedTemplate(userName);
     
-    return await sendEmail({
-      to: email,
-      subject: template.subject,
-      html: template.html,
-      text: template.text
-    });
-  }
+  //   return await sendEmail({
+  //     to: email,
+  //     subject: template.subject,
+  //     html: template.html,
+  //     text: template.text
+  //   });
+  // }
 }
 
 // For backward compatibility
