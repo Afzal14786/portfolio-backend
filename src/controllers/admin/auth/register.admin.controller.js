@@ -6,7 +6,6 @@ export const register = async (req, res) => {
   try {
     const { name, user_name, email, password } = req.body;
 
-    console.log(`The user enter the following details : ${name, user_name, email, password}`);
     // Input validation
     if (!name || !user_name || !email || !password) {
       return res.status(400).json({

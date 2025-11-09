@@ -4,9 +4,9 @@
 
 Complete REST API documentation for Portfolio Dashboard with dual authentication system (Admin & Public users) and OTP-based verification.
 
-**Base URL**: `http://localhost:8080/api/v1`
+**Base URL**: `/api/v1`
 
-**Interactive Documentation**: `http://localhost:8080/api-docs`
+**Interactive Documentation**: `/api-docs`
 
 ## Authentication Flow
 
@@ -88,60 +88,297 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
 ### 1. Admin User Flow
 
-```http
-// 1. Check registration status
-GET /admin-auth/registration-otp/status?email=admin@example.com&type=registration
+- **a. Admin Registration OTP Status**  
+  **Request Body**
+  ```http
+  GET /api/v1/admin-auth/registration-otp/status?email=admin@example.com&type=registration
+  Content-Type: application/json
+  ```
+- **Response Body**  
 
-// 2. Register admin
-POST /admin-auth/register
-{
-  "name": "Admin User",
-  "user_name": "adminuser",
-  "email": "admin@example.com",
-  "password": "password123"
-}
+  ```json
+    {
+      "success": true,
+      "data": {
+        "exists": false,
+        "email": "admin@gmail.com",
+        "type": "registration",
+        "userType": "admin",
+        "message": "No active OTP found"
+      }
+    }
+  ```
 
-// 3. Verify OTP (from email)
-POST /admin-auth/register/verify-otp
-{
-  "email": "admin@example.com",
-  "otp": "123456"
-}
+- **b. Admin Registration**
 
-// 4. Login
-POST /admin-auth/login
-{
-  "email": "admin@example.com",
-  "password": "password123"
-}
+  ```http
+  POST /api/v1/admin-auth/register
+  Content-Type: application/json
+  ```
+  **Request Body**
+  ```json
+  {
+    "name": "Admin User",
+    "user_name": "adminuser",
+    "email": "admin@example.com",
+    "password": "password123"
+  }
+  ```
+  **Response body**
+  ```json
+  {
+    "message": "Admin registration successful! Please check your email to verify your account.",
+    "success": true,
+    "data": {
+      "email": "admin@example.com",
+      "userType": "admin",
+      "expiresIn": 600
+    }
+  }
+  ```
 
-// 5. Verify login OTP
-POST /admin-auth/login/verify
-{
-  "email": "admin@example.com",
-  "otp": "123456"
-}
-```
+  **Verify The OTP**
+  ```http
+  POST /api/v1/admin-auth/register/verify-otp
+  Content-Type: application/json
+  ```
 
-### 3. Public User Flow
+  **Request Body**
+  ```json
+  {
+    "email": "admin@example.com",
+    "otp": "123456" 
+  }
+  ```
 
-```javascript
-// 1. Register public user
-POST /public-auth/register
-{
-  "name": "Public User",
-  "user_name": "publicuser",
-  "email": "user@example.com",
-  "password": "password123"
-}
+  **Response Body**
+  ```json
+    {
+    "message": "Admin account verified and registered successfully",
+    "success": true,
+    "data": {
+      "user": {
+        "id": "64a1b2c3d4e5f67890123456",
+        "user_name": "adminuser",
+        "email": "admin@example.com",
+        "role": "Admin",
+        "userType": "admin",
+        "isVerified": true,
+        "isActive": true
+      },
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+  }
+  ```
 
-// 2. Verify OTP
-POST /public-auth/register/verify-otp
-{
-  "email": "user@example.com",
-  "otp": "123456"
-}
-```
+- **c. Login Admin** 
+  ```http
+  POST /api/v1/admin-auth/login
+  Content-Type: application/json
+  ```
+
+  **Request Body**
+  ```json
+  {
+    "email": "admin@example.com",
+    "password": "password123"
+  }
+  ```
+
+  **Response Body**
+  ```json
+  {
+    "message": "OTP sent to your email. Please verify to continue.",
+    "success": true,
+    "data": {
+      "email": "admin@example.com",
+      "userType": "admin",
+      "expiresIn": 120
+    }
+  }
+  ```
+
+  **Verify Login OTP**
+  ```http
+  POST /api/v1/admin-auth/login/verify
+  Content-Type: application/json
+  ```
+  **Request Body**
+  ```json
+  {
+    "email": "admin@example.com",
+    "otp": "123456" 
+  }
+  ```
+
+  **Response Body**
+  ```json
+  {
+    "message": "Admin login verified successfully",
+    "success": true,
+    "data": {
+      "user": {
+        "_id": "64a1b2c3d4e5f67890123456",
+        "name": "Admin User",
+        "email": "admin@example.com",
+        "role": "Admin",
+        "userType": "admin",
+        "isVerified": true,
+        "isActive": true,
+        "lastLogin": "2024-01-15T10:30:00.000Z"
+      },
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+  }
+  ```
+
+<!-- Admin's More Features Like " Update OR Reset Password, Update Profile Like {Name, Email, etc...}-->
+
+
+### 2. Public User Flow
+
+- **a. Public Registration Status**
+  ```http
+  GET /api/v1/public-auth/registration-otp/status?email=user@example.com&type=registration
+  Content-Type: application/json
+  ```
+
+  **Response Body**
+  ```json
+  {
+    "success": true,
+    "data": {
+      "exists": false,
+      "email": "user@example.com",
+      "type": "registration",
+      "userType": "public",
+      "message": "No active OTP found"
+    }
+  }
+  ```
+
+- **b. Register Public User**
+  
+  ```http
+  POST /api/v1/public-auth/register
+  Content-Type: application/json
+  ```
+  **Request Body**
+  ```json
+  {
+    "name": "Public User",
+    "user_name": "publicuser",
+    "email": "user@example.com",
+    "password": "password123"
+  }
+  ```
+  **Response Body**
+  ```json
+  {
+    "message": "Registration successful! Please check your email to verify your account.",
+    "success": true,
+    "data": {
+      "email": "user@example.com",
+      "userType": "public",
+      "expiresIn": 600
+    }
+  }
+  ```
+
+  **Verify Public Registration OTP**
+  ```http
+  POST /api/v1/public-auth/register/verify-otp
+  Content-Type: application/json
+  ```
+
+  **Request Body**
+  ```json
+  {
+    "email": "user@example.com",
+    "otp": "123456"
+  }
+  ```
+
+  **Response Body**
+  ```json
+    {
+    "message": "Account verified and registered successfully",
+    "success": true,
+    "data": {
+      "user": {
+        "id": "64a1b2c3d4e5f67890123457",
+        "user_name": "publicuser",
+        "email": "user@example.com",
+        "role": "public",
+        "userType": "public",
+        "isVerified": true,
+        "isActive": true
+      },
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+  }
+  ```
+
+- **c. Public User Login**
+  ```http
+  POST /api/v1/public-auth/login
+  Content-Type: application/json
+  ```
+  **Request Body**
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "password123"
+  }
+  ```
+
+  **Response Body**
+  ```json
+  {
+    "message": "OTP sent to your email. Please verify to continue.",
+    "success": true,
+    "data": {
+      "email": "user@example.com",
+      "userType": "public",
+      "expiresIn": 120
+    }
+  }
+  ```
+
+  **Verify Public Login OTP**
+  ```http
+  POST /api/v1/public-auth/login/verify
+  Content-Type: application/json
+  ```
+  
+  **Requested Body**
+  ```json
+  {
+    "email": "user@example.com",
+    "otp": "123456"
+  }
+  ```
+
+  **Response Body**
+  ```json
+  {
+    "message": "Login verified successfully",
+    "success": true,
+    "data": {
+      "user": {
+        "_id": "64a1b2c3d4e5f67890123457",
+        "name": "Public User",
+        "email": "user@example.com",
+        "role": "public",
+        "userType": "public",
+        "isVerified": true,
+        "isActive": true
+      },
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+  }
+  ```
+
 
 ## 🔐 Security Features
 
