@@ -1,4 +1,4 @@
-import { userModel } from "../../models/user.model.js";
+import { adminModel } from "../../models/admin/user.model.js";
 import { sendOTPEmail, sendPasswordChangedEmail } from "../../services/email/email.service.js";
 import { generateOTP, OTP_TYPES, verifyOTP, invalidateOTP } from "../../services/otp.service.js";
 import bcrypt from "bcryptjs";
@@ -15,7 +15,7 @@ export const updatePassword = async (req, res) => {
   }
 
   try {
-    const user = await userModel.findById(userId).select("+password");
+    const user = await adminModel.findById(userId).select("+password");
 
     if (!user) {
       return res.status(404).json({
@@ -90,7 +90,7 @@ export const verifyOtpPassword = async (req, res) => {
   }
 
   try {
-    const user = await userModel.findById(userId);
+    const user = await adminModel.findById(userId);
     if (!user) {
       return res.status(404).json({ 
         message: "User not found.", 
@@ -142,7 +142,7 @@ export const updateEmail = async (req, res) => {
   }
 
   try {
-    const user = await userModel.findById(userId).select("+password");
+    const user = await adminModel.findById(userId).select("+password");
 
     if (!user) {
       return res.status(404).json({
@@ -161,7 +161,7 @@ export const updateEmail = async (req, res) => {
     }
 
     // Check if new email already exists
-    const existingUser = await userModel.findOne({ email: newEmail });
+    const existingUser = await adminModel.findOne({ email: newEmail });
     if (existingUser) {
       return res.status(409).json({
         message: "Email already exists.",
@@ -226,7 +226,7 @@ export const verifyEmailUpdate = async (req, res) => {
   }
 
   try {
-    const user = await userModel.findById(userId);
+    const user = await adminModel.findById(userId);
     if (!user) {
       return res.status(404).json({
         message: "User not found.",

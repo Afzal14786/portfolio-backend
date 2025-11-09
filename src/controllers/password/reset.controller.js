@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { userModel } from "../../models/user.model.js";
+import { adminModel } from "../../models/admin/user.model.js";
 import { sendEmail } from "../../emails/sendEmail.js";
 import { getPasswordResetLinkTemplate, getPasswordChangedTemplate } from "../../services/email/templates/passwordReset.templates.js";
 import bcrypt from "bcryptjs";
@@ -16,7 +16,7 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    const user = await userModel.findOne({ email });
+    const user = await adminModel.findOne({ email });
     // console.log("Database query result:", user);   -- Testing Purpose
     
     if (!user) {
@@ -79,7 +79,7 @@ export const verifyReset = async (req, res) => {
       .update(token)
       .digest("hex");
     
-    const user = await userModel.findOne({
+    const user = await adminModel.findOne({
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() },
     });

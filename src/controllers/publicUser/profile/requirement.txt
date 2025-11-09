@@ -1,0 +1,7 @@
+In version 1.0
+The public user will unable to maintain there own profile as well as they will not be able to write blogs
+
+Future Upgrades : 
+    1. In upcomming versions the user's will able to manage their profiles as well as they will able to write blogs in different categories and respective to their own domains or interested fields
+
+    2. Also we'll introduce the AI for enhancing the blog content or summerising or making question and automate the debate on any blog .

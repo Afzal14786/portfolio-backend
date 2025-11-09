@@ -1,8 +1,8 @@
 import express from "express";
 
-import authRoutes from "./auth/index.js";
-import userRoutes from "./user/index.js";
-// import blogRoutes from "./blog/index.js";
+import adminAuth from "./admin/auth/index.js";
+import adminRoutes from "./admin/index.js";
+import publicAuth from "./publicRoutes/auth/index.js";
 
 const router = express.Router();
 
@@ -10,18 +10,25 @@ const router = express.Router();
 router.get("/", (req, res) => {
   res.json({
     message: "API is working!",
+    version: "1.0.0",
     endpoints: {
-      auth: "/api/v1/auth",
-      user: "/api/v1/user", 
-      // blog: "/api/v1/blog"
+      public: {
+        auth: "/api/v1/public-auth",
+      },
+      admin: {
+        auth: "/api/v1/admin-auth", 
+        dashboard: "/api/v1/admin"
+      }
     },
     timestamp: new Date().toISOString()
   });
 });
 
 // ==================== API ROUTES ====================
-router.use("/auth", authRoutes);
-router.use("/user", userRoutes);
-// router.use("/blog", blogRoutes);
+
+router.use("/admin-auth", adminAuth);     // Admin authentication
+router.use("/admin", adminRoutes);        // Admin dashboard & management
+
+router.use("/public-auth", publicAuth);   // public authentication
 
 export default router;

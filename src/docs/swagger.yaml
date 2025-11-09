@@ -1,75 +1,582 @@
 openapi: 3.0.0
 info:
-  title: Dashboard API Documentation
-  description: API docs for Dashboard project (Login, Projects, Blogs, Skills, etc.)
-  version: 1.0.0
+  title: Portfolio Dashboard API Documentation
+  description: Complete API documentation for Portfolio Dashboard with Admin & Public authentication, OTP verification, and user management
+  version: 2.0.0
   contact:
     name: Md Afzal Ansari
     email: mdafzal14777@gmail.com
 servers:
-  - url: http://localhost:5000
-    description: Local server
+  - url: http://localhost:8080/api/v1
+    description: Local development server
 
 paths:
-  /user/login:
-    post:
-      summary: User Login
-      description: Allows a user to log in using email and password.
+  # ==================== HEALTH CHECKS ====================
+  /:
+    get:
+      summary: API Root Health Check
+      description: Check if API is running and get available endpoints
       tags:
-        - Authentication
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  example: "afzal@gmail.com"
-                password:
-                  type: string
-                  example: "Afzal@123"
+        - Health Check
       responses:
         "200":
-          description: Successful login
+          description: API is working
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  token:
+                  message:
                     type: string
-                    example: "eyJhbGciOiJIUzI1NiIs..."
-        "401":
-          description: Invalid credentials
+                    example: "API is working!"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  endpoints:
+                    type: object
 
-  /user/register:
-    post:
-      summary: Register a new user
+  /admin-auth:
+    get:
+      summary: Admin Auth Health Check
+      description: Check Admin authentication API status and available endpoints
       tags:
-        - Authentication
+        - Health Check
+      responses:
+        "200":
+          description: Admin auth API is working
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Admin Auth API is working!"
+
+  /public-auth:
+    get:
+      summary: Public Auth Health Check
+      description: Check Public authentication API status and available endpoints
+      tags:
+        - Health Check
+      responses:
+        "200":
+          description: Public auth API is working
+
+  # ==================== ADMIN AUTHENTICATION ====================
+  /admin-auth/register:
+    post:
+      summary: Register New Admin
+      description: Register a new admin user with OTP verification
+      tags:
+        - Admin Authentication
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - name
+                - user_name
+                - email
+                - password
               properties:
-                fullName:
+                name:
                   type: string
-                  example: "Md Afzal Ansari"
+                  example: "Admin User"
+                  minLength: 2
+                  maxLength: 50
+                user_name:
+                  type: string
+                  example: "adminuser"
+                  minLength: 3
+                  maxLength: 20
                 email:
                   type: string
-                  example: "mdafzal14777@gmail.com"
-                username:
-                  type: string
-                  example: "afzal14786"
+                  format: email
+                  example: "admin@example.com"
                 password:
                   type: string
-                  example: "Strong@123"
+                  example: "password123"
+                  minLength: 8
       responses:
-        "201":
-          description: User registered successfully
+        "200":
+          description: Admin registration successful - OTP sent to email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Admin registration successful! Please check your email to verify your account."
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                      userType:
+                        type: string
+                        example: "admin"
+                      expiresIn:
+                        type: number
+                        example: 600
         "400":
-          description: Bad request or validation failed
+          description: Validation error
+        "409":
+          description: User already exists
+
+  /admin-auth/register/verify-otp:
+    post:
+      summary: Verify Admin Registration OTP
+      description: Verify OTP to complete admin registration
+      tags:
+        - Admin Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "admin@example.com"
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        "200":
+          description: Admin account verified and registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                      accessToken:
+                        type: string
+
+  /admin-auth/registration-otp/status:
+    get:
+      summary: Check Admin Registration OTP Status
+      description: Check if OTP exists and is active for admin registration
+      tags:
+        - Admin Authentication
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [registration]
+      responses:
+        "200":
+          description: OTP status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      exists:
+                        type: boolean
+                      email:
+                        type: string
+                      type:
+                        type: string
+                      userType:
+                        type: string
+                      message:
+                        type: string
+
+  /admin-auth/registration-otp/resend:
+    post:
+      summary: Resend Admin Registration OTP
+      description: Resend OTP for admin registration
+      tags:
+        - Admin Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - type
+              properties:
+                email:
+                  type: string
+                  format: email
+                type:
+                  type: string
+                  enum: [registration]
+      responses:
+        "200":
+          description: OTP resent successfully
+
+  /admin-auth/login:
+    post:
+      summary: Admin Login Request
+      description: Initiate admin login with OTP verification
+      tags:
+        - Admin Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        "200":
+          description: OTP sent to email for login verification
+
+  /admin-auth/login/verify:
+    post:
+      summary: Verify Admin Login OTP
+      description: Verify OTP to complete admin login
+      tags:
+        - Admin Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                otp:
+                  type: string
+      responses:
+        "200":
+          description: Admin login verified successfully
+
+  /admin-auth/login/logout:
+    post:
+      summary: Admin Logout
+      description: Logout admin user and revoke refresh token
+      tags:
+        - Admin Authentication
+      responses:
+        "200":
+          description: Logged out successfully
+
+  /admin-auth/otp/resend:
+    post:
+      summary: Resend OTP (Authenticated Admin)
+      description: Resend OTP for various operations (password reset, email update, etc.)
+      tags:
+        - Admin OTP Operations
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+              properties:
+                type:
+                  type: string
+                  enum: [password_reset, password_update, email_update, username_update]
+                  example: "password_reset"
+      responses:
+        "200":
+          description: OTP resent successfully
+
+  /admin-auth/otp/status:
+    get:
+      summary: Check OTP Status (Authenticated Admin)
+      description: Check status of active OTP for authenticated admin
+      tags:
+        - Admin OTP Operations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [password_reset, password_update, email_update, username_update]
+      responses:
+        "200":
+          description: OTP status retrieved successfully
+
+  # ==================== PUBLIC USER AUTHENTICATION ====================
+  /public-auth/register:
+    post:
+      summary: Register New Public User
+      description: Register a new public user with OTP verification
+      tags:
+        - Public Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - user_name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  example: "Public User"
+                user_name:
+                  type: string
+                  example: "publicuser"
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  example: "password123"
+      responses:
+        "200":
+          description: Public user registration successful - OTP sent to email
+
+  /public-auth/register/verify-otp:
+    post:
+      summary: Verify Public User Registration OTP
+      description: Verify OTP to complete public user registration
+      tags:
+        - Public Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                otp:
+                  type: string
+      responses:
+        "200":
+          description: Public user account verified and registered successfully
+
+  /public-auth/registration-otp/status:
+    get:
+      summary: Check Public Registration OTP Status
+      description: Check if OTP exists and is active for public user registration
+      tags:
+        - Public Authentication
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [registration]
+      responses:
+        "200":
+          description: OTP status retrieved successfully
+
+  /public-auth/registration-otp/resend:
+    post:
+      summary: Resend Public Registration OTP
+      description: Resend OTP for public user registration
+      tags:
+        - Public Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - type
+              properties:
+                email:
+                  type: string
+                  format: email
+                type:
+                  type: string
+                  enum: [registration]
+      responses:
+        "200":
+          description: OTP resent successfully
+
+  /public-auth/login:
+    post:
+      summary: Public User Login Request
+      description: Initiate public user login with OTP verification
+      tags:
+        - Public Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        "200":
+          description: OTP sent to email for login verification
+
+  /public-auth/login/verify:
+    post:
+      summary: Verify Public User Login OTP
+      description: Verify OTP to complete public user login
+      tags:
+        - Public Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                otp:
+                  type: string
+      responses:
+        "200":
+          description: Public user login verified successfully
+
+  /public-auth/login/logout:
+    post:
+      summary: Public User Logout
+      description: Logout public user and revoke refresh token
+      tags:
+        - Public Authentication
+      responses:
+        "200":
+          description: Logged out successfully
+
+  /public-auth/otp/resend:
+    post:
+      summary: Resend OTP (Authenticated Public User)
+      description: Resend OTP for various operations (password reset, password update)
+      tags:
+        - Public OTP Operations
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+              properties:
+                type:
+                  type: string
+                  enum: [password_reset, password_update]
+                  example: "password_reset"
+      responses:
+        "200":
+          description: OTP resent successfully
+
+  /public-auth/otp/status:
+    get:
+      summary: Check OTP Status (Authenticated Public User)
+      description: Check status of active OTP for authenticated public user
+      tags:
+        - Public OTP Operations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [password_reset, password_update]
+      responses:
+        "200":
+          description: OTP status retrieved successfully
+
+# Security Schemes
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+# Tags
+tags:
+  - name: Health Check
+    description: API health check endpoints
+  - name: Admin Authentication
+    description: Admin user registration and authentication
+  - name: Admin OTP Operations
+    description: OTP operations for authenticated admin users
+  - name: Public Authentication
+    description: Public user registration and authentication
+  - name: Public OTP Operations
+    description: OTP operations for authenticated public users

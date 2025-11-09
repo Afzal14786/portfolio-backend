@@ -1,134 +1,238 @@
-# 🌐 Portfolio Backend API
+# 🌐 Integrated Portfolio And Blog Management System -- Backend
 
 ## 🚀 Overview
 
-This repository houses the robust backend API built for my personal portfolio. Its primary function is to serve as a secure content management system for the admin dashboard and provide fast, publicly accessible endpoints for the main portfolio website (Landing Page).
+This repository houses the robust backend API built for my personal portfolio and integrated blog management system. Its primary function is to serve as a secure blog management system for the admin dashboard and provide fast, publicly accessible endpoints for the main portfolio website. In the main website public users are able to `view`, `read`, `like` and `comment` in the blog . 
 
-The API is built following RESTful principles, ensuring clear separation of concerns and maintainability.
+The API is built following RESTful principles with dual authentication system `(Admin & Public users)` and `OTP-based verification` for enhanced security.
+
+### 📚 API Documentation
+
+**Interactive Swagger UI**: [`http://localhost:8080/api-docs`](http://localhost:8080/api-docs)
+
+**Base URL**: `http://localhost:8080/api/v1`
 
 ### 💻 Technology Stack
 
-| **Component** | **Technology** | **Notes** | 
+| **Component** | **Technology** | **Notes** |
 | :--- | :--- | :--- |
-| **Runtime** | Node.js | Asynchronous, event-driven JavaScript runtime environment. | 
-| **Framework** | Express.js | Fast, unopinionated, minimalist web framework for Node.js. | 
-| **Language** | JavaScript (JS) | Backend logic is written in pure JavaScript for deployment efficiency. | 
-| **Database** | MongoDB / Mongoose | Flexible NoSQL database for content storage and Mongoose for schema management. | 
+| **Runtime** | Node.js | Asynchronous, event-driven JavaScript runtime environment. |
+| **Framework** | Express.js | Fast, unopinionated, minimalist web framework for Node.js. |
+| **Language** | JavaScript (JS) | Backend logic is written in pure JavaScript for deployment efficiency. |
+| **Database** | MongoDB / Mongoose | Flexible NoSQL database for content storage and Mongoose for schema management. |
+| **Documentation** | OpenAPI 3.0 | Comprehensive API documentation with Swagger UI |
 
 ---
 
-## ✨ Detailed Features
+## ✨ Core Features
 
-The backend supports two main functional areas: **Authentication & Profile Management** and **Content Management**.
+### 🔐 Dual Authentication System
 
-### 1. Authentication & Profile Management
-
-This module handles user identity and administrative profile updates.
-
-| **Feature** | **Description** | **Key Routes** | 
+| **User Type** | **Features** | **OTP Verification** |
 | :--- | :--- | :--- |
-| **Registration** | Secure user sign-up requiring **Full Name**, **Username**, and a **Strong Password**. Uses **OTP Verification** sent via email for confirmation. | `/user/register`, `/user/verify-otp` | 
-| **Login** | Supports standard email/password login as well as third-party authentication via **GitHub** and **Google** for streamlined access. | `/user/login`, `/user/social-login` | 
-| **Password Management** | Provides protected endpoints for updating the password from the dashboard and a secure mechanism for resetting a forgotten password via email link. | `/user/update-password`, `/user/reset-password` | 
-| **Profile CRUD** | The admin can add or modify their **Profile Picture**, **Banner Picture**, **Resume** (PDF), and manage an array of **Social Media Links** and **Hobbies**. | `/user/profile`, `/user/profile/update` | 
+| **Admin Users** | Full dashboard access, content management, user management | Registration, Login, Password Reset, Email Update |
+| **Public Users** | Portfolio access, contact forms, blog reading | Registration, Login, Password Reset |
 
-### 2. Content Management (CRUD)
+### 📊 Authentication Flow
 
-All dynamic content displayed on the portfolio site is managed via dedicated endpoints, ensuring real-time updates.
+**Registration Flow:**
+1. `POST /{user-type}-auth/register` - Submit registration details
+2. Check email for OTP
+3. `POST /{user-type}-auth/register/verify-otp` - Verify OTP to activate account
 
-| **Content Model** | **Description** | **Primary Routes** | 
-| :--- | :--- | :--- |
-| **Projects** | Full CRUD for portfolio projects, including retrieval of all projects and individual project details. | `/user/project/all-projects`, `/user/project/:id` | 
-| **Blogs** | Complete management system for blog posts. **The API must support an auto-save/draft feature** (e.g., frequent `PUT` requests) while the user writes content. | `/user/blogs/all-blogs`, `/user/blogs/:id` | 
-| **Skills** | Management of a list of technical skills. The dashboard handles adding, editing, and deleting individual skills, then sends the updated array for a single API `PUT` operation. | `/user/skills/all-skills`, `/user/skills` | 
-| **Certificates** | CRUD functionality for official certifications and achievements. | `/user/certificates/all-certificates`, `/user/certificates/:id` | 
-| **Reading Resources** | Management of external reading links (an array of objects). The full array is typically managed in one update request (`PUT`). | `/user/reading-resources/all` | 
-| **Timelines** | CRUD for "My Journey" entries, detailing professional or personal milestones. | `/user/timelines/all`, `/user/timelines/:id` | 
-| **Inquiries** | Endpoint for the public frontend to send messages (contact form) and a protected endpoint for the admin to retrieve them. | `/messages`, `/messages/all` | 
+**Login Flow:**
+1. `POST /{user-type}-auth/login` - Submit credentials
+2. Check email for OTP
+3. `POST /{user-type}-auth/login/verify` - Verify OTP to get access token
+
+### 🛡️ Security Features
+- **OTP Verification** for all critical operations
+- **JWT Tokens** with HTTP-only cookies for refresh tokens
+- **BCrypt Password Hashing** with salt rounds 12
+- **Rate Limiting** and account locking mechanisms
+- **CORS Protection** with configurable origins
 
 ---
 
-## 🏗️ System Workflow (Conceptual)
+## 🏗️ API Architecture
 
-The backend operates under a controlled access flow to maintain security and integrity.
+### 📍 Endpoint Structure
+-   `http://localhost:8080/api/v1/{category}/{endpoint}`
 
-| **Step** | **Actor** | **Action** | **Result/Security** |
+
+### 🔄 System Workflow
+
+| **Step** | **Actor** | **Action** | **API Route** |
 | :--- | :--- | :--- | :--- |
-| **1. Registration** | New User | POST `/api/user/register` | Sends OTP to Email for confirmation. |
-| **2. Login** | Admin User | POST `/api/user/login` | Returns **Auth Token** (JWT). |
-| **3. Content Access**| Admin User | GET/POST/PUT/DELETE `/api/user/...` | Requires **Bearer Token** in the Authorization Header. |
-| **4. Public Fetch** | Public Site | GET `/api/public/data` | Unauthenticated requests for displaying content. |
-| **5. Contact** | Public Visitor | POST `/api/messages` | Saves message to database for admin review. |
+| **1. Health Check** | Any User | `GET /` | API status verification |
+| **2. Admin Registration** | New Admin | `POST /admin-auth/register` | OTP sent to email |
+| **3. OTP Verification** | New Admin | `POST /admin-auth/register/verify-otp` | Account activation |
+| **4. Admin Login** | Admin User | `POST /admin-auth/login` | OTP sent to email |
+| **5. Login Verification** | Admin User | `POST /admin-auth/login/verify` | JWT token issued |
+| **6. Content Management** | Admin User | Various protected routes | Bearer token required |
+| **7. Public Access** | Public Site | Public routes | Unauthenticated access |
 
 ---
 
-## 🛠️ API Reference
+## 🎯 Quick Start Guide
 
-All protected endpoints require an `Authorization: Bearer [TOKEN]` header.
+### 1. Health Checks
+```bash
+# API Root
+curl http://localhost:8080/api/v1/
 
-| **Feature** | **Method** | **Route** | **Protected** | **Description** | 
-| :--- | :--- | :--- | :--- | :--- |
-| **Registration** | `POST` | `/api/user/register` | ❌ | Registers user and sends OTP. | 
-| **Login** | `POST` | `/api/user/login` | ❌ | Authenticates user and issues JWT token. | 
-| **Get Profile** | `GET` | `/api/user/profile` | ✅ | Retrieves logged-in user profile data. | 
-| **Update Profile** | `PUT` | `/api/user/profile/update` | ✅ | Updates profile details and uploads files (images/resume). | 
-| **Project CRUD** | `POST/PUT/DELETE` | `/api/user/project/:id` | ✅ | Create, Update, or Delete a single project. | 
-| **Blog CRUD** | `POST/PUT/DELETE` | `/api/user/blogs/:id` | ✅ | Create, Update, or Delete a single blog post. | 
-| **Update Skills** | `PUT` | `/api/user/skills` | ✅ | Overwrites the entire skills array with the new list. | 
-| **Get Messages** | `GET` | `/api/messages/all` | ✅ | Retrieves all contact messages. | 
+# Admin Auth Status
+curl http://localhost:8080/api/v1/admin-auth
+
+# Public Auth Status  
+curl http://localhost:8080/api/v1/public-auth
+``` 
+
+### 2. Admin Registration & Login
+
+```bash
+# 1. Register Admin
+curl -X POST http://localhost:8080/api/v1/admin-auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Admin User",
+    "user_name": "adminuser", 
+    "email": "admin@example.com",
+    "password": "password123"
+  }'
+
+# 2. Verify OTP (check email for code)
+curl -X POST http://localhost:8080/api/v1/admin-auth/register/verify-otp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "otp": "123456"
+  }'
+
+# 3. Login
+curl -X POST http://localhost:8080/api/v1/admin-auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "password123"
+  }'
+
+# 4. Verify Login OTP
+curl -X POST http://localhost:8080/api/v1/admin-auth/login/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com", 
+    "otp": "123456"
+  }'
+```
+
+### 3. Public User Flow
+```bash
+# Register Public User
+curl -X POST http://localhost:8080/api/v1/public-auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Public User",
+    "user_name": "publicuser",
+    "email": "user@example.com",
+    "password": "password123"
+  }'
+```
+
+## 📋 API Categories 
+
+### 🔍 Health Checks
+-   `GET /` - API Root Health Check
+-   `GET /admin-auth` - Admin Auth Status
+-   `GET /public-auth` - Public Auth Status
+
+### 👑 Admin Authentication
+-   `POST /admin-auth/register` - Register new admin
+-   `POST /admin-auth/register/verify-otp` - Verify registration OTP
+-   `POST /admin-auth/login` - Admin login request
+-   `POST /admin-auth/login/verify` - Verify login OTP
+-   `POST /admin-auth/login/logout` - Admin logout
+-   `GET /admin-auth/registration-otp/status` - Check OTP status
+-   `POST /admin-auth/registration-otp/resend` - Resend OTP
+
+### 👥 Public Authentication
+-   `POST /public-auth/register` - Register public user
+-   `POST /public-auth/register/verify-otp` - Verify registration OTP
+-   `POST /public-auth/login` - Public user login
+-   `POST /public-auth/login/verify` - Verify login OTP
+-   `POST /public-auth/login/logout` - Public user logout
+
+### 🔧 OTP Operations
+-   `POST /admin-auth/otp/resend` - Resend OTP (Admin)
+-   `GET /admin-auth/otp/status` - Check OTP status (Admin)
+-   `POST /public-auth/otp/resend` - Resend OTP (Public)
+-   `GET /public-auth/otp/status` - Check OTP status (Public)
 
 ---
 
-## 🧪 Testing Examples
+## 🛡️ Security & Authentication
 
-Use **cURL** or a similar tool to test core functionality. Replace `[BASE_URL]` with your server's address.
+### Required Headers for Protected Routes
+```http
+Authorization: Bearer your_jwt_token_here
+Content-Type: application/json
+```
 
-### 1. User Login
+### OTP Types Supported
+**For Both Admin & Public:**
+-   `registration` - User registration
+-   `login` - User login
+-   `email_update` - Email change verification
+-   `password_reset` - Password reset requests
+-   `password_change` - Password change requests
 
-**A. Request: User Login**
+**Admin Only:**
+-   `blog_management` - Blog Management
 
+---
+
+## 🧪 Testing & Development
+
+### Testing Tips
+1. Use different emails for admin and public user testing
+2. Check server logs for OTP values during development
+3. Password requirements: Minimum 8 characters
+4. Username requirements: 3-20 characters, alphanumeric + underscore only
+
+### Example Authenticated Request
 ```bash
-curl -X POST "[BASE_URL]/api/user/login" \
--H "Content-Type: application/json" \
--d '{
-    "email": "dev@example.com",
-    "password": "Secure!Password123"
-}'  
-```  
+# Check OTP status (requires authentication)
+curl -X GET "http://localhost:8080/api/v1/admin-auth/otp/status?type=password_reset" \
+  -H "Authorization: Bearer your_access_token_here"
+```
 
-**B. Expected Response (Login Success)**  
-
-```bash
+### Success Response Format
+```json
 {
-    "success": true,
-    "message": "Login successful.",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NmQyYzFlOGY3YTlkMGIzYzRlNWE2YjciLCJpYXQiOjE2ODg5ODc3ODR9.S1Q2R3Q4VzlYMGYxQTIiVnMyUTZ2YkE",
-    "username": "devuser"
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "user": {
+      "name": "Admin User",
+      "email": "admin@example.com",
+      "userType": "admin"
+    },
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
 }
 ```
- 
-### 2. Protected Route: Create New Blog Post  
 
-> Note: Use the token received from the login step in the Authorization header.  
+---
 
-**A. Request: Create Blog Post**  
-```bash
-curl -X POST "[BASE_URL]/api/user/blogs" \
--H "Content-Type: application/json" \
--H "Authorization: Bearer [YOUR_AUTH_TOKEN]" \
--d '{
-    "title": "My First Backend Blog",
-    "content": "This post details the API implementation of my portfolio.",
-    "tags": ["NodeJS", "Express", "MongoDB"]
-}'
-```  
+## 🔗 Useful Links
 
-**B. Expected Response (Content Creation Success)**  
-```bash
-{
-    "success": true,
-    "message": "Blog post created successfully.",
-    "blogId": "99d2c1e8f7a9d0b3c4e5a6b7",
-    "title": "My First Backend Blog"
-}
-```
+-   🔄 Live API: `http://localhost:8080/api/v1`
+-   📚 Interactive Docs: `http://localhost:8080/api-docs`
+-   ❤️ Health Check: `http://localhost:8080/health`
+
+--- 
+*__Maintainer__: Md Afzal Ansari*  
+*__Email__: mdafzal14777@gmail.com*
+
+--- 
+*Last Updated: Nov 9, 2025*

@@ -1,15 +1,24 @@
-// Centralized template imports
+// Centralized template exports
 export { 
+  getOperationalEmail,
   getRegistrationTemplate,
   getLoginTemplate,
-  getPasswordResetTemplate,
   getPasswordUpdateTemplate,
-  getEmailUpdateTemplate,
-  getLoginSuccessTemplate,
+  getEmailUpdateTemplate
+} from './auth.templates.js';
+
+export { 
+  getNotificationEmail,
+  getLoginSuccessTemplate
+} from './notification.templates.js';
+
+export { 
+  getPasswordResetLinkTemplate,
   getPasswordChangedTemplate
-} from './templates/auth.templates.js';
+} from './passwordReset.templates.js';
 
 export { 
   getWelcomeTemplate
-} from './templates/welcome.templates.js';
+} from './welcome.templates.js';
 
+export { BaseTemplate } from './base.templates.js';
