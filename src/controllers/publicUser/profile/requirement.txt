@@ -2,6 +2,26 @@ In version 1.0
 The public user will unable to maintain there own profile as well as they will not be able to write blogs
 
 Future Upgrades : 
-    1. In upcomming versions the user's will able to manage their profiles as well as they will able to write blogs in different categories and respective to their own domains or interested fields
+    1. In upcoming versions the user's will able to manage their profiles as well as they will able to write blogs in different categories and respective to their own domains or interested fields
 
     2. Also we'll introduce the AI for enhancing the blog content or summerising or making question and automate the debate on any blog .
+
+    3. This platform will also work for the organization to maintain their blogs related to their organization .
+        e.g,. The XYZ Company 
+        If this company want to maintain their own blogs or system blogs then their tech teams can write blogs in this platform and people from their organization as well as the people who belong to the same fields can consume the blogs or content . It will not just a blog . It will be an AI blog platform in which the user or organization can handle their targeted organizations or fields.
+
+
+        e.g,. I am a software developer and i like to read something which is related to my field and work . So i want a platform that content everything related to that field as well as work . 
+
+
+    So, in the upcoming versions of this software could have AI integrated blog summarizing featured as well as the user can convert the blog into an audio and listed to them . 
+
+    We'll make this platform confortable to the big organizations to maintain their works and tech or any private related blogs .
+
+    So, we have to make it more secure and we've to integrate the AI also in this platform to make it more easy to use to the relevent audience 
+
+    Who are the audiences?
+        1. The students from different domains {CS, CSE, Doctors, Layers, Social Activists, Political Parties}
+        2. The Small And Big Organizations (e.g : To maintain their tech or any other blogs which is related to their organization)
+        3. For the people who love to write something always
+        4. The students and the tech peoples can also show this platform's profiles in their resume. 
