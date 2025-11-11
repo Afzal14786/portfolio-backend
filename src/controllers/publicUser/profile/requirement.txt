@@ -10,6 +10,7 @@ Future Upgrades :
         e.g,. The XYZ Company 
         If this company want to maintain their own blogs or system blogs then their tech teams can write blogs in this platform and people from their organization as well as the people who belong to the same fields can consume the blogs or content . It will not just a blog . It will be an AI blog platform in which the user or organization can handle their targeted organizations or fields.
 
+        Using AI the user's should able to create summarizing, mind-map, audio, video, questions?, or say quizes and flash cards. 
 
         e.g,. I am a software developer and i like to read something which is related to my field and work . So i want a platform that content everything related to that field as well as work . 
 
