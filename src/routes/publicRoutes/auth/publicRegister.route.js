@@ -4,7 +4,7 @@ import {register, verifyOtp} from "../../../controllers/publicUser/auth/publicRe
 
 const router = express.Router();
 
-router.post("/", wrapAsync(register));
+router.post("/register", wrapAsync(register));
 router.post("/verify-otp", wrapAsync(verifyOtp));
 
 export default router;

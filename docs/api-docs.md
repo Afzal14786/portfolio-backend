@@ -48,16 +48,17 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
 #### Registration
 
-- **POST** `/admin-auth/register` - Register New Admin
-- **POST** `/admin-auth/register/verify-otp` - Verify Admin Registration OTP
-- **GET** `/admin-auth/registration-otp/status` - Check Admin Registration OTP Status
-- **POST** `/admin-auth/registration-otp/resend` - Resend Admin Registration OTP
+- **POST** `/admin-auth/signup/register` - Register New Admin
+- **POST** `/admin-auth/signup/verify-otp` - Verify Admin Registration OTP
+- **GET** `/admin-auth/auth-otp/status` - Check Admin Registration OTP Status
+- **POST** `/admin-auth/auth-otp/resend` - Resend Admin Registration OTP
 
 #### Login & Session
 
-- **POST** `/admin-auth/login` - Admin Login Request
-- **POST** `/admin-auth/login/verify` - Verify Admin Login OTP
-- **POST** `/admin-auth/login/logout` - Admin Logout
+- **POST** `/admin-auth/signup/login` - Admin Login Request
+- **POST** `/admin-auth/signup/verify` - Verify Admin Login OTP
+- **POST** `/admin-auth/signup/logout` - Admin Logout
+- **POST** `/admin-auth/auth-otp/resend` - Resend Admin Registration OTP
 
 #### OTP Operations (Authenticated)
 
@@ -68,16 +69,16 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
 #### Registration
 
-- **POST** `/public-auth/register` - Register New Public User
-- **POST** `/public-auth/register/verify-otp` - Verify Public User Registration OTP
-- **GET** `/public-auth/registration-otp/status` - Check Public Registration OTP Status
-- **POST** `/public-auth/registration-otp/resend` - Resend Public Registration OTP
+- **POST** `/public-auth/signup/register` - Register New Public User
+- **POST** `/public-auth/signup/verify-otp` - Verify Public User Registration OTP
+- **GET** `/public-auth/auth-otp/status` - Check Public Registration OTP Status
+- **POST** `/public-auth/auth-otp/resend` - Resend Public Registration OTP
 
 #### Login & Session
 
-- **POST** `/public-auth/login` - Public User Login Request
-- **POST** `/public-auth/login/verify` - Verify Public User Login OTP
-- **POST** `/public-auth/login/logout` - Public User Logout
+- **POST** `/public-auth/signin/login` - Public User Login Request
+- **POST** `/public-auth/signin/verify` - Verify Public User Login OTP
+- **POST** `/public-auth/signin/logout` - Public User Logout
 
 #### OTP Operations (Authenticated)
 
@@ -91,7 +92,7 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 - **a. Admin Registration OTP Status**  
   **Request Body**
   ```http
-  GET /api/v1/admin-auth/registration-otp/status?email=admin@example.com&type=registration
+  GET /api/v1/admin-auth/auth-otp/status?email=admin@example.com&type=registration
   Content-Type: application/json
   ```
 - **Response Body**  
@@ -112,7 +113,7 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 - **b. Admin Registration**
 
   ```http
-  POST /api/v1/admin-auth/register
+  POST /api/v1/admin-auth/signup/register
   Content-Type: application/json
   ```
   **Request Body**
@@ -139,7 +140,7 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
   **Verify The OTP**
   ```http
-  POST /api/v1/admin-auth/register/verify-otp
+  POST /api/v1/admin-auth/signup/verify-otp
   Content-Type: application/json
   ```
 
@@ -173,7 +174,7 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
 - **c. Login Admin** 
   ```http
-  POST /api/v1/admin-auth/login
+  POST /api/v1/admin-auth/signin/login
   Content-Type: application/json
   ```
 
@@ -200,7 +201,7 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
   **Verify Login OTP**
   ```http
-  POST /api/v1/admin-auth/login/verify
+  POST /api/v1/admin-auth/signin/verify
   Content-Type: application/json
   ```
   **Request Body**
@@ -239,7 +240,7 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
 - **a. Public Registration Status**
   ```http
-  GET /api/v1/public-auth/registration-otp/status?email=user@example.com&type=registration
+  GET /api/v1/public-auth/auth-otp/status?email=user@example.com&type=registration
   Content-Type: application/json
   ```
 
@@ -260,7 +261,7 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 - **b. Register Public User**
   
   ```http
-  POST /api/v1/public-auth/register
+  POST /api/v1/public-auth/signup/login
   Content-Type: application/json
   ```
   **Request Body**
@@ -287,7 +288,7 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
   **Verify Public Registration OTP**
   ```http
-  POST /api/v1/public-auth/register/verify-otp
+  POST /api/v1/public-auth/signup/verify-otp
   Content-Type: application/json
   ```
 
@@ -321,7 +322,7 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
 - **c. Public User Login**
   ```http
-  POST /api/v1/public-auth/login
+  POST /api/v1/public-auth/signin/login
   Content-Type: application/json
   ```
   **Request Body**
@@ -495,3 +496,6 @@ Authorization: Bearer your_access_token_here
 ### Last Updated: Nov 9, 2025
 
 ### Maintainer: Md Afzal Ansari
+
+![Maintainer](https://img.shields.io/badge/Maintainer-Md%20Afzal%20Ansari-blue)
+![Last Updated](https://img.shields.io/github/last-commit/Afzal14786/portfolio-backend/docs?label=Docs%20Updated&color=blue)

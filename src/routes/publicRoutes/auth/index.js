@@ -7,10 +7,10 @@ import publicRegistrationOtpRoute from './publicRegistrationOtp.route.js';
 const router = express.Router();
 
 // Auth routes
-router.use("/login", publicLoginRoute);
-router.use("/register", publicRegisterRoute);
+router.use("/signin", publicLoginRoute);
+router.use("/signup", publicRegisterRoute);
 router.use("/otp", publicOtpRoute);
-router.use("/registration-otp", publicRegistrationOtpRoute);
+router.use("/auth-otp", publicRegistrationOtpRoute);
 
 // ==================== AUTH HEALTH CHECK ====================
 router.get("/", (req, res) => {

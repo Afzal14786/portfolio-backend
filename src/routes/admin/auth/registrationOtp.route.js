@@ -21,7 +21,7 @@ router.post("/resend", wrapAsync((req, res) => {
 router.get("/status", wrapAsync((req, res) => {
   const modifiedQuery = {
     ...req.query,
-    userType: 'admin'      // add admin into userType
+    userType: 'admin'
   };
   
   // Create a modified request object

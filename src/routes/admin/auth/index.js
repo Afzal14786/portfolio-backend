@@ -7,9 +7,9 @@ import registrationOtpRoutes from "./registrationOtp.route.js";
 const router = express.Router();
 
 // ==================== AUTH ROUTES ====================
-router.use("/registration-otp", registrationOtpRoutes); // for non-authorized persons
-router.use("/login", loginRoutes);
-router.use("/register", registerRoutes);
+router.use("/auth-otp", registrationOtpRoutes); // for non-authorized persons
+router.use("/signin", loginRoutes);
+router.use("/signup", registerRoutes);
 router.use("/otp", otpRoutes); // for only authorized persons
 
 // ==================== AUTH HEALTH CHECK ====================

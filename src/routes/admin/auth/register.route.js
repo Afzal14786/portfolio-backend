@@ -4,7 +4,7 @@ import { register, verifyOtp } from "../../../controllers/admin/auth/register.ad
 
 const router = express.Router();
 
-router.post("/", wrapAsync(register));
+router.post("/register", wrapAsync(register));
 router.post("/verify-otp", wrapAsync(verifyOtp));
 
 export default router;

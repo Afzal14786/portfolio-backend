@@ -64,7 +64,7 @@ paths:
           description: Public auth API is working
 
   # ==================== ADMIN AUTHENTICATION ====================
-  /admin-auth/register:
+  /admin-auth/signup/register:
     post:
       summary: Register New Admin
       description: Register a new admin user with OTP verification
@@ -130,7 +130,7 @@ paths:
         "409":
           description: User already exists
 
-  /admin-auth/register/verify-otp:
+  /admin-auth/signup/verify-otp:
     post:
       summary: Verify Admin Registration OTP
       description: Verify OTP to complete admin registration
@@ -173,7 +173,7 @@ paths:
                       accessToken:
                         type: string
 
-  /admin-auth/registration-otp/status:
+  /admin-auth/auth-otp/status:
     get:
       summary: Check Admin Registration OTP Status
       description: Check if OTP exists and is active for admin registration
@@ -216,7 +216,7 @@ paths:
                       message:
                         type: string
 
-  /admin-auth/registration-otp/resend:
+  /admin-auth/auth-otp/resend:
     post:
       summary: Resend Admin Registration OTP
       description: Resend OTP for admin registration
@@ -242,7 +242,7 @@ paths:
         "200":
           description: OTP resent successfully
 
-  /admin-auth/login:
+  /admin-auth/signin/login:
     post:
       summary: Admin Login Request
       description: Initiate admin login with OTP verification
@@ -267,7 +267,7 @@ paths:
         "200":
           description: OTP sent to email for login verification
 
-  /admin-auth/login/verify:
+  /admin-auth/signin/verify:
     post:
       summary: Verify Admin Login OTP
       description: Verify OTP to complete admin login
@@ -292,7 +292,7 @@ paths:
         "200":
           description: Admin login verified successfully
 
-  /admin-auth/login/logout:
+  /admin-auth/signin/logout:
     post:
       summary: Admin Logout
       description: Logout admin user and revoke refresh token
@@ -302,7 +302,7 @@ paths:
         "200":
           description: Logged out successfully
 
-  /admin-auth/otp/resend:
+  /admin-auth/auth-otp/resend:
     post:
       summary: Resend OTP (Authenticated Admin)
       description: Resend OTP for various operations (password reset, email update, etc.)
@@ -327,7 +327,7 @@ paths:
         "200":
           description: OTP resent successfully
 
-  /admin-auth/otp/status:
+  /admin-auth/auth-otp/status:
     get:
       summary: Check OTP Status (Authenticated Admin)
       description: Check status of active OTP for authenticated admin
@@ -347,7 +347,7 @@ paths:
           description: OTP status retrieved successfully
 
   # ==================== PUBLIC USER AUTHENTICATION ====================
-  /public-auth/register:
+  /public-auth/signup/register:
     post:
       summary: Register New Public User
       description: Register a new public user with OTP verification
@@ -382,7 +382,7 @@ paths:
         "200":
           description: Public user registration successful - OTP sent to email
 
-  /public-auth/register/verify-otp:
+  /public-auth/signup/verify-otp:
     post:
       summary: Verify Public User Registration OTP
       description: Verify OTP to complete public user registration
@@ -407,7 +407,7 @@ paths:
         "200":
           description: Public user account verified and registered successfully
 
-  /public-auth/registration-otp/status:
+  /public-auth/auth-otp/status:
     get:
       summary: Check Public Registration OTP Status
       description: Check if OTP exists and is active for public user registration
@@ -430,7 +430,7 @@ paths:
         "200":
           description: OTP status retrieved successfully
 
-  /public-auth/registration-otp/resend:
+  /public-auth/auth-otp/resend:
     post:
       summary: Resend Public Registration OTP
       description: Resend OTP for public user registration
@@ -456,7 +456,7 @@ paths:
         "200":
           description: OTP resent successfully
 
-  /public-auth/login:
+  /public-auth/signin/login:
     post:
       summary: Public User Login Request
       description: Initiate public user login with OTP verification
@@ -481,7 +481,7 @@ paths:
         "200":
           description: OTP sent to email for login verification
 
-  /public-auth/login/verify:
+  /public-auth/signin/verify:
     post:
       summary: Verify Public User Login OTP
       description: Verify OTP to complete public user login
@@ -506,7 +506,7 @@ paths:
         "200":
           description: Public user login verified successfully
 
-  /public-auth/login/logout:
+  /public-auth/signin/logout:
     post:
       summary: Public User Logout
       description: Logout public user and revoke refresh token
