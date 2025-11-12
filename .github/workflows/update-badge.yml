@@ -19,7 +19,7 @@ jobs:
       - name: Update last updated date
         run: |
           CURRENT_DATE=$(date '+%b %d, %Y')
-          sed -i "s/### Last Updated: .*/### Last Updated: $CURRENT_DATE/" docs/api-doc.md
+          sed -i "s/### Last Updated: .*/### Last Updated: $CURRENT_DATE/" docs/api-docs.md
           
       - name: Commit and push if changed
         run: |
