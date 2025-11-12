@@ -27,7 +27,7 @@ router.get("/", (req, res) => {
 // ==================== API ROUTES ====================
 
 router.use("/admin-auth", adminAuth);     // Admin authentication
-router.use("/admin", adminRoutes);        // Admin dashboard & management
+router.use("/admin", adminRoutes);        // Admin dashboard & management and reset the password without authentication
 
 router.use("/public-auth", publicAuth);   // public authentication
 

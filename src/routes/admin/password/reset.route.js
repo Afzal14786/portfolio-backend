@@ -9,6 +9,6 @@ const router = express.Router();
 
 // Password reset --- authentication not required
 router.post("/request", wrapAsync(resetPassword));           // Request for token
-router.post("/verify-otp", wrapAsync(verifyReset));       // Verify the token
+router.post("/verify", wrapAsync(verifyReset));       // Verify the token
 
 export default router;
