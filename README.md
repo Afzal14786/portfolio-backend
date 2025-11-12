@@ -36,14 +36,14 @@ The API is built following RESTful principles with dual authentication system `(
 ### 📊 Authentication Flow
 
 **Registration Flow:**
-1. `POST /{user-type}-auth/register` - Submit registration details
+1. `POST /{user-type}-auth/signup/register` - Submit registration details
 2. Check email for OTP
-3. `POST /{user-type}-auth/register/verify-otp` - Verify OTP to activate account
+3. `POST /{user-type}-auth/signup/verify-otp` - Verify OTP to activate account
 
 **Login Flow:**
-1. `POST /{user-type}-auth/login` - Submit credentials
+1. `POST /{user-type}-auth/signin/login` - Submit credentials
 2. Check email for OTP
-3. `POST /{user-type}-auth/login/verify` - Verify OTP to get access token
+3. `POST /{user-type}-auth/signin/verify` - Verify OTP to get access token
 
 ### 🛡️ Security Features
 - **OTP Verification** for all critical operations
@@ -65,10 +65,10 @@ The API is built following RESTful principles with dual authentication system `(
 | **Step** | **Actor** | **Action** | **API Route** |
 | :--- | :--- | :--- | :--- |
 | **1. Health Check** | Any User | `GET /` | API status verification |
-| **2. Admin Registration** | New Admin | `POST /admin-auth/register` | OTP sent to email |
-| **3. OTP Verification** | New Admin | `POST /admin-auth/register/verify-otp` | Account activation |
-| **4. Admin Login** | Admin User | `POST /admin-auth/login` | OTP sent to email |
-| **5. Login Verification** | Admin User | `POST /admin-auth/login/verify` | JWT token issued |
+| **2. Admin Registration** | New Admin | `POST /admin-auth/signup/register` | OTP sent to email |
+| **3. OTP Verification** | New Admin | `POST /admin-auth/signup/verify-otp` | Account activation |
+| **4. Admin Login** | Admin User | `POST /admin-auth/signin/login` | OTP sent to email |
+| **5. Login Verification** | Admin User | `POST /admin-auth/signin/verify` | JWT token issued |
 | **6. Content Management** | Admin User | Various protected routes | Bearer token required |
 | **7. Public Access** | Public Site | Public routes | Unauthenticated access |
 
@@ -92,7 +92,7 @@ curl http://localhost:8080/api/v1/public-auth
 
 ```bash
 # 1. Register Admin
-curl -X POST http://localhost:8080/api/v1/admin-auth/register \
+curl -X POST http://localhost:8080/api/v1/admin-auth/signup/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Admin User",
@@ -102,7 +102,7 @@ curl -X POST http://localhost:8080/api/v1/admin-auth/register \
   }'
 
 # 2. Verify OTP (check email for code)
-curl -X POST http://localhost:8080/api/v1/admin-auth/register/verify-otp \
+curl -X POST http://localhost:8080/api/v1/admin-auth/signup/verify-otp \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@example.com",
@@ -110,7 +110,7 @@ curl -X POST http://localhost:8080/api/v1/admin-auth/register/verify-otp \
   }'
 
 # 3. Login
-curl -X POST http://localhost:8080/api/v1/admin-auth/login \
+curl -X POST http://localhost:8080/api/v1/admin-auth/signin/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@example.com",
@@ -118,7 +118,7 @@ curl -X POST http://localhost:8080/api/v1/admin-auth/login \
   }'
 
 # 4. Verify Login OTP
-curl -X POST http://localhost:8080/api/v1/admin-auth/login/verify \
+curl -X POST http://localhost:8080/api/v1/admin-auth/signin/verify \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@example.com", 
@@ -129,7 +129,7 @@ curl -X POST http://localhost:8080/api/v1/admin-auth/login/verify \
 ### 3. Public User Flow
 ```bash
 # Register Public User
-curl -X POST http://localhost:8080/api/v1/public-auth/register \
+curl -X POST http://localhost:8080/api/v1/public-auth/signup/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Public User",
@@ -147,19 +147,19 @@ curl -X POST http://localhost:8080/api/v1/public-auth/register \
 -   `GET /public-auth` - Public Auth Status
 
 ### 👑 Admin Authentication
--   `POST /admin-auth/register` - Register new admin
--   `POST /admin-auth/register/verify-otp` - Verify registration OTP
--   `POST /admin-auth/login` - Admin login request
--   `POST /admin-auth/login/verify` - Verify login OTP
--   `POST /admin-auth/login/logout` - Admin logout
--   `GET /admin-auth/registration-otp/status` - Check OTP status
--   `POST /admin-auth/registration-otp/resend` - Resend OTP
+-   `POST /admin-auth/signup/register` - Register new admin
+-   `POST /admin-auth/signup/verify-otp` - Verify registration OTP
+-   `POST /admin-auth/signin/login` - Admin login request
+-   `POST /admin-auth/signin/verify` - Verify login OTP
+-   `POST /admin-auth/signin/logout` - Admin logout
+-   `GET /admin-auth/auth-otp/status` - Check OTP status
+-   `POST /admin-auth/auth-otp/resend` - Resend OTP
 
 ### 👥 Public Authentication
--   `POST /public-auth/register` - Register public user
--   `POST /public-auth/register/verify-otp` - Verify registration OTP
--   `POST /public-auth/login` - Public user login
--   `POST /public-auth/login/verify` - Verify login OTP
+-   `POST /public-auth/signup/register` - Register public user
+-   `POST /public-auth/signup/verify-otp` - Verify registration OTP
+-   `POST /public-auth/signin/login` - Public user login
+-   `POST /public-auth/signin/verify` - Verify login OTP
 -   `POST /public-auth/login/logout` - Public user logout
 
 ### 🔧 OTP Operations
