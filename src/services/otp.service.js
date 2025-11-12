@@ -39,6 +39,11 @@ export const generateOTP = async (email, type, metadata = {}) => {
       type,
       timestamp: Date.now(),
       metadata: {
+        /** User ID is optional --
+         * Not in user while register and login but
+         * for update email ID, changing the password it will work
+         */
+        ...(metadata.userId && { userId: metadata.userId }),
         name: metadata.name,
         user_name: metadata.user_name,
         email: metadata.email,

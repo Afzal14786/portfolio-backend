@@ -2,9 +2,9 @@ import express from "express";
 import wrapAsync from "../../../middlewares/wrapErr.js";
 import { protect } from "../../../middlewares/middleware.auth.js";
 import { 
-  updateEmailId, 
-  verifyUpdateEmailOtp 
-} from "../../../controllers/admin/profile/update/update.user.controller.js";
+  updateEmail,
+  verifyOtp 
+} from "../../../controllers/admin/profile/update/updateEmail.controller.js";
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ const router = express.Router();
 router.use(protect);
 
 // Email update flow
-router.post("/request-update", wrapAsync(updateEmailId));      // Request email update OTP
-router.post("/verify-otp", wrapAsync(verifyUpdateEmailOtp));   // Verify & update email
+router.post("/request-update", wrapAsync(updateEmail));      // Request email update OTP
+router.post("/verify-otp", wrapAsync(verifyOtp));   // Verify & update email
 
 export default router;

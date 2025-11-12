@@ -10,7 +10,7 @@ const router = express.Router();
 // ==================== USER ROUTES ====================
 router.use("/password", passwordRoutes);
 router.use("/profile", profileRoutes);
-router.use("/email", emailRoutes);
+router.use("/update_email", emailRoutes);
 
 // ==================== USER HEALTH CHECK ====================
 router.get("/", (req, res) => {
