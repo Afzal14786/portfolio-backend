@@ -112,7 +112,7 @@ app.use(
 
 // Swagger Documentation
 const swaggerDocument = YAML.load(
-  path.join(__dirname, "./src/docs/swagger.yaml")
+  path.join(__dirname, "./docs/swagger.yaml")
 );
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
