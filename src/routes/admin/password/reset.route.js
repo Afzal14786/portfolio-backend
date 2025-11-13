@@ -3,7 +3,7 @@ import wrapAsync from "../../../middlewares/wrapErr.js";
 import { 
   resetPassword, 
   verifyReset,
-} from "../../../controllers/password/reset.controller.js";
+} from "../../../controllers/admin/profile/password/resetPassword.controller.js";
 
 const router = express.Router();
 

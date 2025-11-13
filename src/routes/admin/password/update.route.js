@@ -4,7 +4,7 @@ import { protect } from "../../../middlewares/middleware.auth.js";
 import { 
   updatePassword, 
   verifyOtpPassword 
-} from "../../../controllers/password/update.controller.js";
+} from "../../../controllers/admin/profile/password/updatePassword.controller.js";
 
 const router = express.Router();
 

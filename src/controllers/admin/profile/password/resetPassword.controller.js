@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
-import { adminModel } from "../../models/admin/user.model.js";
-import { sendEmail } from "../../emails/sendEmail.js";
-import { getPasswordResetLinkTemplate, getPasswordChangedTemplate } from "../../services/email/templates/passwordReset.templates.js";
+import { adminModel } from "../../../../models/admin/user.model.js";
+import { sendEmail } from "../../../../emails/sendEmail.js";
+
 import bcrypt from "bcryptjs";
 
 export const resetPassword = async (req, res) => {
@@ -26,6 +26,11 @@ export const resetPassword = async (req, res) => {
         success: true,
       });
     }
+
+    // if any existing reset tokens first, then clear it 
+    
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
 
     // Generate password reset token (10 minutes expiry)
     const resetToken = user.createPasswordResetToken();
@@ -91,7 +96,7 @@ export const verifyReset = async (req, res) => {
       });
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    user.password = await bcrypt.hash(newPassword, 12);
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
 
