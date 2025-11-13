@@ -4,6 +4,7 @@ on:
     branches: [ main ]
     paths:
       - 'docs/**'
+      - 'BACKEND/docs/**'
   schedule:
     - cron: '0 0 * * *'
 
@@ -19,12 +20,26 @@ jobs:
       - name: Update last updated date
         run: |
           CURRENT_DATE=$(date '+%b %d, %Y')
-          sed -i "s/### Last Updated: .*/### Last Updated: $CURRENT_DATE/" docs/api-docs.md
+          FILE_PATH="docs/api-docs.md"
+          
+          # Check if file exists
+          if [ ! -f "$FILE_PATH" ]; then
+            echo "File $FILE_PATH not found, trying BACKEND/docs/api-docs.md"
+            FILE_PATH="BACKEND/docs/api-docs.md"
+          fi
+          
+          if [ -f "$FILE_PATH" ]; then
+            sed -i "s/### Last Updated: .*/### Last Updated: $CURRENT_DATE/" "$FILE_PATH"
+            echo "Updated $FILE_PATH"
+          else
+            echo "Error: Could not find api-docs.md file"
+            exit 1
+          fi
           
       - name: Commit and push if changed
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add docs/api-docs.md
+          git add docs/api-docs.md BACKEND/docs/api-docs.md
           git diff --staged --quiet || git commit -m "docs: update last modified date [skip ci]"
           git push
