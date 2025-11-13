@@ -44,375 +44,221 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 - **GET** `/admin-auth` - Admin Auth Health Check
 - **GET** `/public-auth` - Public Auth Health Check
 
-### 👑 Admin Authentication
+### 👑 {user_type} Authentication
 
 #### Registration
 
-- **POST** `/admin-auth/signup/register` - Register New Admin
-- **POST** `/admin-auth/signup/verify-otp` - Verify Admin Registration OTP
-- **GET** `/admin-auth/auth-otp/status` - Check Admin Registration OTP Status
-- **POST** `/admin-auth/auth-otp/resend` - Resend Admin Registration OTP
+- **POST** `/{user_type}/signup/register` - Register New Admin
+- **POST** `/{user_type}/signup/verify-otp` - Verify Admin Registration OTP
+- **GET** `/{user_type}/auth-otp/status` - Check Admin Registration OTP Status
+- **POST** `/{user_type}/auth-otp/resend` - Resend Admin Registration OTP
 
 #### Login & Session
 
-- **POST** `/admin-auth/signup/login` - Admin Login Request
-- **POST** `/admin-auth/signup/verify` - Verify Admin Login OTP
-- **POST** `/admin-auth/signup/logout` - Admin Logout
-- **POST** `/admin-auth/auth-otp/resend` - Resend Admin Registration OTP
+- **POST** `/{user_type}/signup/login` - Admin Login Request
+- **POST** `/{user_type}/signup/verify` - Verify Admin Login OTP
+- **POST** `/{user_type}/signup/logout` - Admin Logout
+- **POST** `/{user_type}/auth-otp/resend` - Resend Admin Registration OTP
 
 #### OTP Operations (Authenticated)
 
-- **POST** `/admin-auth/otp/resend` - Resend OTP for operations
-- **GET** `/admin-auth/otp/status` - Check OTP Status
+- **POST** `/{user_type}/otp/resend` - Resend OTP for operations
+- **GET** `/{user_type}/otp/status` - Check OTP Status  
 
-### 👥 Public User Authentication
 
-#### Registration
+### Resetting The Password For {user_type} (Un-Authenticated)
+- **POST** `/{user_type}/password/reset/request` - Requesting For Password Reset token --reset link send over the registered email
+- **POST** `/{user_type}/password/reset/verify` - Verify the token
 
-- **POST** `/public-auth/signup/register` - Register New Public User
-- **POST** `/public-auth/signup/verify-otp` - Verify Public User Registration OTP
-- **GET** `/public-auth/auth-otp/status` - Check Public Registration OTP Status
-- **POST** `/public-auth/auth-otp/resend` - Resend Public Registration OTP
+### 🔧 {user_type} Profile Updates (All Require Authentication)  
+#### File Upload Endpoints
+- **PATCH** `/{user_type}/profile/image` -  Update profile image
+- **PATCH** `/{user_type}/profile/banner` -  Update banner image
+- **PATCH** `/{user_type}/profile/resume` -  Update resume
 
-#### Login & Session
+#### Data Update Endpoints
+- **PATCH** `/{user_type}/profile/social-media` -  Update social_media
+- **PATCH** `/{user_type}/profile/reading-resources` -  Update reading-resources
+- **PATCH** `/{user_type}/profile/quote` -  Update Quote
+- **PATCH** `/{user_type}/profile/hobbies` -  Update Hobbies
+- **PATCH** `/{user_type}/profile/basic-info` -  Update name & username
+- **PATCH** `/{user_type}/profile/bulk-update` -  Bulk update multiple fields 
 
-- **POST** `/public-auth/signin/login` - Public User Login Request
-- **POST** `/public-auth/signin/verify` - Verify Public User Login OTP
-- **POST** `/public-auth/signin/logout` - Public User Logout
+#### Security Endpoints For Password & Email Update
+- **POST** `/{user_type}/password/update/request` -  Request password update -- for authenticate user only
+- **POST** `/{user_type}/password/update/verify-otp` -  Verify OTP and update password -- for authenticate user only
+- **POST** `/{user_type}/update_email/request-update` -  Request for email update -- OTP Sent -- for authenticate user only
+- **POST** `/{user_type}/update_email/verify-otp` -  Verify OTP and update email
 
-#### OTP Operations (Authenticated)
-
-- **POST** `/public-auth/otp/resend` - Resend OTP for operations
-- **GET** `/public-auth/otp/status` - Check OTP Status
 
 ## 🚀 Quick Start Examples
 
-### 1. Admin User Flow
+### 1. {user_type} Registration & Login Flow
 
-- **a. Admin Registration OTP Status**  
-  **Request Body**
+- **Register {user_type}:**
   ```http
-  GET /api/v1/admin-auth/auth-otp/status?email=admin@example.com&type=registration
+  POST /api/v1/{user_type}-auth/signup/register
   Content-Type: application/json
-  ```
-- **Response Body**  
 
-  ```json
-    {
-      "success": true,
-      "data": {
-        "exists": false,
-        "email": "admin@gmail.com",
-        "type": "registration",
-        "userType": "admin",
-        "message": "No active OTP found"
-      }
-    }
-  ```
-
-- **b. Admin Registration**
-
-  ```http
-  POST /api/v1/admin-auth/signup/register
-  Content-Type: application/json
-  ```
-  **Request Body**
-  ```json
   {
-    "name": "Admin User",
+    "name": "{user_type}",
     "user_name": "adminuser",
     "email": "admin@example.com",
     "password": "password123"
   }
   ```
-  **Response body**
-  ```json
-  {
-    "message": "Admin registration successful! Please check your email to verify your account.",
-    "success": true,
-    "data": {
-      "email": "admin@example.com",
-      "userType": "admin",
-      "expiresIn": 600
-    }
-  }
-  ```
-
-  **Verify The OTP**
+- **Verify Registration OTP:**  
   ```http
-  POST /api/v1/admin-auth/signup/verify-otp
+  POST /api/v1/{user_type}-auth/signup/verify-otp
   Content-Type: application/json
-  ```
 
-  **Request Body**
-  ```json
   {
     "email": "admin@example.com",
-    "otp": "123456" 
-  }
-  ```
-
-  **Response Body**
-  ```json
-    {
-    "message": "Admin account verified and registered successfully",
-    "success": true,
-    "data": {
-      "user": {
-        "id": "64a1b2c3d4e5f67890123456",
-        "user_name": "adminuser",
-        "email": "admin@example.com",
-        "role": "Admin",
-        "userType": "admin",
-        "isVerified": true,
-        "isActive": true
-      },
-      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    }
-  }
-  ```
-
-- **c. Login Admin** 
-  ```http
-  POST /api/v1/admin-auth/signin/login
-  Content-Type: application/json
-  ```
-
-  **Request Body**
-  ```json
-  {
-    "email": "admin@example.com",
-    "password": "password123"
-  }
-  ```
-
-  **Response Body**
-  ```json
-  {
-    "message": "OTP sent to your email. Please verify to continue.",
-    "success": true,
-    "data": {
-      "email": "admin@example.com",
-      "userType": "admin",
-      "expiresIn": 120
-    }
-  }
-  ```
-
-  **Verify Login OTP**
-  ```http
-  POST /api/v1/admin-auth/signin/verify
-  Content-Type: application/json
-  ```
-  **Request Body**
-  ```json
-  {
-    "email": "admin@example.com",
-    "otp": "123456" 
-  }
-  ```
-
-  **Response Body**
-  ```json
-  {
-    "message": "Admin login verified successfully",
-    "success": true,
-    "data": {
-      "user": {
-        "_id": "64a1b2c3d4e5f67890123456",
-        "name": "Admin User",
-        "email": "admin@example.com",
-        "role": "Admin",
-        "userType": "admin",
-        "isVerified": true,
-        "isActive": true,
-        "lastLogin": "2024-01-15T10:30:00.000Z"
-      },
-      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    }
-  }
-  ```
-
-<!-- Admin's More Features Like " Update OR Reset Password, Update Profile Like {Name, Email, etc...}-->
-
-
-### 2. Public User Flow
-
-- **a. Public Registration Status**
-  ```http
-  GET /api/v1/public-auth/auth-otp/status?email=user@example.com&type=registration
-  Content-Type: application/json
-  ```
-
-  **Response Body**
-  ```json
-  {
-    "success": true,
-    "data": {
-      "exists": false,
-      "email": "user@example.com",
-      "type": "registration",
-      "userType": "public",
-      "message": "No active OTP found"
-    }
-  }
-  ```
-
-- **b. Register Public User**
-  
-  ```http
-  POST /api/v1/public-auth/signup/login
-  Content-Type: application/json
-  ```
-  **Request Body**
-  ```json
-  {
-    "name": "Public User",
-    "user_name": "publicuser",
-    "email": "user@example.com",
-    "password": "password123"
-  }
-  ```
-  **Response Body**
-  ```json
-  {
-    "message": "Registration successful! Please check your email to verify your account.",
-    "success": true,
-    "data": {
-      "email": "user@example.com",
-      "userType": "public",
-      "expiresIn": 600
-    }
-  }
-  ```
-
-  **Verify Public Registration OTP**
-  ```http
-  POST /api/v1/public-auth/signup/verify-otp
-  Content-Type: application/json
-  ```
-
-  **Request Body**
-  ```json
-  {
-    "email": "user@example.com",
     "otp": "123456"
   }
   ```
 
-  **Response Body**
-  ```json
-    {
-    "message": "Account verified and registered successfully",
-    "success": true,
-    "data": {
-      "user": {
-        "id": "64a1b2c3d4e5f67890123457",
-        "user_name": "publicuser",
-        "email": "user@example.com",
-        "role": "public",
-        "userType": "public",
-        "isVerified": true,
-        "isActive": true
-      },
-      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    }
-  }
-  ```
+- **{user_type} Login:**
 
-- **c. Public User Login**
   ```http
-  POST /api/v1/public-auth/signin/login
+  POST /api/v1/{user_type}-auth/signin/login
   Content-Type: application/json
-  ```
-  **Request Body**
-  ```json
+
   {
-    "email": "user@example.com",
+    "email": "admin@example.com", 
     "password": "password123"
   }
   ```
-
-  **Response Body**
-  ```json
-  {
-    "message": "OTP sent to your email. Please verify to continue.",
-    "success": true,
-    "data": {
-      "email": "user@example.com",
-      "userType": "public",
-      "expiresIn": 120
-    }
-  }
-  ```
-
-  **Verify Public Login OTP**
+  **Verify Login OTP:**
   ```http
-  POST /api/v1/public-auth/login/verify
+  POST /api/v1/{user_type}-auth/signin/verify
   Content-Type: application/json
-  ```
-  
-  **Requested Body**
-  ```json
+
   {
-    "email": "user@example.com",
+    "email": "admin@example.com",
     "otp": "123456"
   }
   ```
 
-  **Response Body**
-  ```json
-  {
-    "message": "Login verified successfully",
-    "success": true,
-    "data": {
-      "user": {
-        "_id": "64a1b2c3d4e5f67890123457",
-        "name": "Public User",
-        "email": "user@example.com",
-        "role": "public",
-        "userType": "public",
-        "isVerified": true,
-        "isActive": true
-      },
-      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    }
-  }
-  ```
+### 2. {user_type} Profile Management Examples 
+#### Update Profile Image (Authenticated):
+```http
+PATCH /api/v1/{user_type}/profile/image
+Authorization: Bearer your_access_token
+Content-Type: multipart/form-data
 
+[FormData with profile_image file]
+```
 
-## 🔐 Security Features
+#### Update Social Media Links:
+```http
+PATCH /api/v1/{user_type}/profile/social-media
+Authorization: Bearer your_access_token
+Content-Type: application/json
 
-- **OTP Verification:** All critical operations require email OTP verification
-- **JWT Tokens:** Access tokens for authenticated requests
-- **HTTP-only Cookies:** Refresh tokens stored securely
-- **Password Hashing:** BCrypt with salt rounds 12
-- **Rate Limiting:** OTP resend cooldown (20 seconds)
-- **Account Locking:** 3 failed attempts lock account for 15 minutes
-
-## 📊 OTP Types Supported
-
-### For Both Admin & Public:
-
-- `registration` - User registration
-- `login` - User login
-- `password_reset` - Password reset requests
-- `password_update` - Password update requests
-
-### Admin Only:
-
-- `blog_management` - Blog Management
-
-## 🛡️ Error Handling
-
-Common error responses:
-
-```json
 {
-  "success": false,
-  "message": "Error description"
+  "socialMedia": {
+    "github": "https://github.com/username",
+    "linkedin": "https://linkedin.com/in/username",
+    "twitter": "https://twitter.com/username"
+  }
 }
 ```
+
+#### Update Password:
+```http
+POST /api/v1/{user_type}/update_password
+Authorization: Bearer your_access_token
+Content-Type: application/json
+
+{
+  "oldPassword": "currentpassword",
+  "newPassword": "newpassword123"
+}
+```
+
+#### Verify Password OTP:
+```http
+POST /api/v1/{user_type}/verify-password-otp
+Authorization: Bearer your_access_token  
+Content-Type: application/json
+
+{
+  "otp": "123456"
+}
+```
+
+#### Update Email:
+```http
+POST /api/v1/{user_type}/update_email/request-update
+Authorization: Bearer your_access_token
+Content-Type: application/json
+
+{
+  "newEmail": "newemail@example.com"
+}
+```
+
+#### Verify Email OTP:
+```http
+POST /api/v1/{user_type}/update_email/verify-otp
+Authorization: Bearer your_access_token
+Content-Type: application/json
+
+{
+  "newEmail": "newemail@example.com",
+  "otp": "123456"
+}
+```
+
+### 📊 OTP Types Supported
+#### Authentication OTP Types:
+- `registration` - {user_type} registration
+- `login` - {user_type} login
+
+#### Security OTP Types:
+- `password_update` - Password update requests
+- `email_update` - Email update requests
+
+### 🔐 Security Features
+
+| Security Layer | Technology Used | Configuration |
+|---------------|----------------|---------------|
+| **Authentication** | JWT Tokens + OTP | Email verification for critical operations |
+| **Password Security** | BCrypt Hashing | 12 salt rounds |
+| **Account Protection** | Automatic Locking | 3 failed attempts → 15 min lock |
+| **File Security** | Type & Size Validation | MIME type checking + 5MB limit |
+
+### 🛡️ File Upload Specifications
+
+| File Type | Supported Formats | Size Limit | Validation |
+|-----------|------------------|------------|------------|
+| **Profile Images** | JPEG, JPG, PNG, WebP | 5MB | MIME type + dimensions |
+| **Banner Images** | JPEG, JPG, PNG, WebP | 5MB | MIME type + dimensions |
+| **Resume/Documents** | PDF, DOC, DOCX | 5MB | MIME type check |
+
+### 📝 Response Formats
+#### Success Response:
+```json
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": { /* response data */ }
+}
+```
+
+#### Error Response:
+```json
+{
+  "success": false, 
+  "message": "Error description",
+  "error": "Detailed error message" // In development
+}
+```
+
+#### Admin Only:
+
+- `blog_management` - Blog Management  
 
 **Common HTTP Status Codes:**
 
@@ -493,7 +339,7 @@ Authorization: Bearer your_access_token_here
 
 ---
 
-### Last Updated: Nov 9, 2025
+### Last Updated: Nov 13, 2025
 
 ### Maintainer: Md Afzal Ansari
 
