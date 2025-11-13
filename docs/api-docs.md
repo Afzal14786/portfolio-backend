@@ -342,6 +342,3 @@ Authorization: Bearer your_access_token_here
 ### Last Updated: Nov 13, 2025
 
 ### Maintainer: Md Afzal Ansari
-
-![Maintainer](https://img.shields.io/badge/Maintainer-Md%20Afzal%20Ansari-blue)
-![Last Updated](https://img.shields.io/github/last-commit/Afzal14786/portfolio-backend/main?filename=docs%2Fapi-docs.md&label=Docs%20Updated&color=blue)
