@@ -344,4 +344,4 @@ Authorization: Bearer your_access_token_here
 ### Maintainer: Md Afzal Ansari
 
 ![Maintainer](https://img.shields.io/badge/Maintainer-Md%20Afzal%20Ansari-blue)
-![Last Updated](https://img.shields.io/github/last-commit/Afzal14786/portfolio-backend/docs?label=Docs%20Updated&color=blue)
+![Last Updated](https://img.shields.io/github/last-commit/Afzal14786/portfolio-backend?label=Docs%20Updated&color=blue)
