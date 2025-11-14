@@ -27,8 +27,8 @@ export const userSchema = new mongoose.Schema(
     },
 
     resume: {
-      type: String,
-      default: null,
+      public_id: String,
+      url: String,
     },
 
     password: {
@@ -45,13 +45,13 @@ export const userSchema = new mongoose.Schema(
     },
 
     profile_image: {
-      type: String,
-      default: "/assets/default_user.png",
+      public_id: String,
+      url: String,
     },
 
     banner_image: {
-      type: String,
-      default: "/assets/default_banner.png",
+      public_id: String,
+      url: String,
     },
 
     social_media: {

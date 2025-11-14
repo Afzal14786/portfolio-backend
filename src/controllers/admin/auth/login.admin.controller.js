@@ -167,6 +167,7 @@ export const verifyLogin = async (req, res) => {
           blog_count: user.blog_count
         },
         accessToken,
+        refreshToken,
       },
     });
 

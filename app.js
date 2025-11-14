@@ -9,6 +9,7 @@ import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import path from "path";
+import refreshRouter from './src/routes/auth/refresh.route.js';
 import { fileURLToPath } from "url";
 
 import connectDB from "./src/config/database.js";
@@ -91,6 +92,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 app.use(compression());
+app.use('/api/v1/auth', refreshRouter);
 
 // Session Configuration
 app.use(
