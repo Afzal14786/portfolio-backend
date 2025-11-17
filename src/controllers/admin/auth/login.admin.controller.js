@@ -156,6 +156,7 @@ export const verifyLogin = async (req, res) => {
       data: {
         user: {
           _id: user._id,
+          user_name: user.user_name,
           name: user.name,
           email: user.email,
           role: user.role,
