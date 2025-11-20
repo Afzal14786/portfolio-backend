@@ -1,10 +1,12 @@
 import express from "express";
-import profileRoutes from "./profile.route.js";
+import profileRoutes from "./updateProfile.route.js";
+import getProfileInfo from "./getProfile.route.js";
 
 const router = express.Router();
 
 // ==================== PROFILE ROUTES ====================
 router.use("/", profileRoutes); // All routes are in profile.routes.js
+router.use("/info", getProfileInfo);
 
 // ==================== PROFILE HEALTH CHECK ====================
 router.get("/", (req, res) => {

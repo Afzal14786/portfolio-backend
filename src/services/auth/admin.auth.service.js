@@ -80,7 +80,7 @@ export const adminLogin = async (email, password) => {
     throw { code: 'NOT_VERIFIED', message: 'Please verify your email before logging in' };
   }
 
-  const matchPassword = await bcrypt.compare(password, user.password);
+  const matchPassword = await user.comparePassword(password);
   
   if (!matchPassword) {
     // increment failed attempts

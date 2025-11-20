@@ -7,6 +7,7 @@ const connectDB = ()=> {
         console.log(`DB Connected Successfully`);
     }).catch((err)=> {
         console.log(`Error while db connect : ${err}`);
+        process.exit(1);
     })
 }
 
