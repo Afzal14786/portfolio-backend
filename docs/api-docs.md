@@ -4,9 +4,22 @@
 
 Complete REST API documentation for Portfolio Dashboard with dual authentication system (Admin & Public users) and OTP-based verification.
 
-**Base URL**: `/api/v1`
+**Base URL**: `http://localhost:8080/api/v1`  
+**Health Check**: `GET /` - API status and endpoints overview  
+**Interactive Documentation**: `/api-docs`   
 
-**Interactive Documentation**: `/api-docs`
+## 🏥 API Health Check Endpoints  
+| Endpoint | Method | Description | Authentication |
+|----------|---------|-------------|----------------|
+| `/` | GET | Main API health check | None |
+| `/admin` | GET | Admin API health check | None |
+| `/admin/auth` | GET | Auth service health | None |
+| `/admin/blogs` | GET | Blog service health | Required |
+| `/admin/profile` | GET | Profile service health | Required |
+| `/admin/password` | GET | Password service health | None |
+| `/admin/email` | GET | Email service health | None | 
+  
+
 
 ## Authentication Flow
 
@@ -14,15 +27,15 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
 ### Registration Flow:
 
-1. `POST /{user-type}-auth/register` - Submit registration details
-2. Check email for OTP
-3. `POST /{user-type}-auth/register/verify-otp` - Verify OTP to activate account
+1. `POST /{user_type}/auth/signup` - Submit registration details
+2. Check email for OTP (valid for 10 minutes)
+3. `POST /{user_type}/auth/signup/verify-otp` - Verify OTP to activate account
 
 ### Login Flow:
 
-1. `POST /{user-type}-auth/login` - Submit credentials
-2. Check email for OTP
-3. `POST /{user-type}-auth/login/verify` - Verify OTP to get access token
+1. `POST /{user_type}/auth/signin` - Submit credentials  
+2. Check email for OTP (valid for 10 minutes)
+3. `POST /{user_type}/auth/signin/verify` - Verify OTP to get access token
 
 ## 📋 Test Results Summary
 
@@ -48,17 +61,17 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
 #### Registration
 
-- **POST** `/{user_type}/signup/register` - Register New Admin
+- **POST** `/{user_type}/signup` - Register New Admin
 - **POST** `/{user_type}/signup/verify-otp` - Verify Admin Registration OTP
 - **GET** `/{user_type}/auth-otp/status` - Check Admin Registration OTP Status
 - **POST** `/{user_type}/auth-otp/resend` - Resend Admin Registration OTP
 
 #### Login & Session
 
-- **POST** `/{user_type}/signup/login` - Admin Login Request
-- **POST** `/{user_type}/signup/verify` - Verify Admin Login OTP
-- **POST** `/{user_type}/signup/logout` - Admin Logout
-- **POST** `/{user_type}/auth-otp/resend` - Resend Admin Registration OTP
+- **POST** `/{user_type}/auth/signin` - Admin login request
+- **POST** `/{user_type}/auth/signin/verify` - Verify login OTP
+- **POST** `/{user_type}/auth/otp/resend` - Resend OTP for operations
+- **GET** `/{user_type}/auth/otp/status` - Check OTP status
 
 #### OTP Operations (Authenticated)
 
@@ -90,6 +103,62 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 - **POST** `/{user_type}/update_email/request-update` -  Request for email update -- OTP Sent -- for authenticate user only
 - **POST** `/{user_type}/update_email/verify-otp` -  Verify OTP and update email
 
+### 📝 Blog Management (`/admin/blogs`)  
+
+#### Analytics & Stats  
+- **GET** `/admin/blogs/stats` - Dashboard statistics
+- **GET** `/admin/blogs/analytics/:blogId` - Blog-specific analytics  
+
+#### Blog CRUD Operations  
+
+- **GET** `/admin/blogs` - Get all admin's blogs
+- **GET** `/admin/blogs/:id` - Get blog by ID
+- **POST** `/admin/blogs` - Create new blog
+- **POST** `/admin/blogs/draft` - Create draft
+- **POST** `/admin/blogs/:blogId/auto-save` - Auto-save draft
+- **PUT** `/admin/blogs/:id` - Update blog
+- **PATCH** `/admin/blogs/:id/status` - Update blog status
+- **DELETE** `/admin/blogs/:id` - Delete blog
+
+#### Content Management  
+- **POST** `/admin/blogs/:blogId/images` - Upload blog image  
+
+### 👤 Profile Management (`/admin/profile`)  
+
+#### File Uploads  
+- **PATCH** `/admin/profile/update/image` - Update profile image
+- **PATCH** `/admin/profile/update/banner` - Update banner image  
+- **PATCH** `/admin/profile/update/resume` - Update resume
+
+#### Data Updates  
+- **PATCH** `/admin/profile/update/social-media` - Update social media
+- **PATCH** `/admin/profile/update/reading-resources` - Update reading resources
+- **PATCH** `/admin/profile/update/quote` - Update personal quote
+- **PATCH** `/admin/profile/update/hobbies` - Update hobbies
+- **PATCH** `/admin/profile/update/basic-info` - Update name & username
+- **PATCH** `/admin/profile/update/bulk-update` - Bulk update
+
+#### Profile Info  
+- **GET** `/admin/profile/info` - Get profile information  
+
+### 🔒 Security Management  
+
+#### Password Management (`/{user_type}/password`)
+- **POST** `/{user_type}/password/reset/request` - Forgot password (no auth)
+- **POST** `/{user_type}/password/reset/verify-otp` - Verify reset OTP (no auth)
+- **POST** `/{user_type}/password/update/request` - Password update request (auth)
+- **POST** `/{user_type}/password/update/verify-otp` - Verify update OTP (auth)  
+
+#### Email Management (`/admin/email`)  
+- **POST** `/{user_type}/email/request-update` - Request email update (auth)
+- **POST** `/{user_type}/email/verify-otp` - Verify email OTP (auth) 
+
+## 🌐 Public Routes  
+
+### Blog Portfolio (`/blogs`)
+- **GET** `/blogs` - Get all published blogs
+- **GET** `/blogs/:slug` - Get blog by slug 
+
 
 ## 🚀 Quick Start Examples
 
@@ -97,7 +166,7 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 
 - **Register {user_type}:**
   ```http
-  POST /api/v1/{user_type}-auth/signup/register
+  POST /api/v1/{user_type}-auth/signup
   Content-Type: application/json
 
   {
@@ -121,7 +190,7 @@ All authentication operations use OTP (One-Time Password) verification sent via 
 - **{user_type} Login:**
 
   ```http
-  POST /api/v1/{user_type}-auth/signin/login
+  POST /api/v1/{user_type}-auth/signin
   Content-Type: application/json
 
   {
@@ -140,7 +209,63 @@ All authentication operations use OTP (One-Time Password) verification sent via 
   }
   ```
 
-### 2. {user_type} Profile Management Examples 
+### 2. Blog Creation (Authenticated)  
+```http
+POST /api/v1/admin/blogs
+Authorization: Bearer your_access_token
+Content-Type: application/json
+{
+  "title": "My First Blog Post",
+  "content": "Blog content here...",
+  "topic": "Technology",
+  "tags": ["javascript", "nodejs"],
+  "status": "draft"
+}
+```
+
+### 3. Profile Image Upload  
+```http
+PATCH /api/v1/admin/profile/update/image
+Authorization: Bearer your_access_token
+Content-Type: multipart/form-data
+
+[FormData with profile_image file]
+```
+
+### File Upload Specifications  
+| File Type      | Formats                 | Size Limit | Notes                |
+|----------------|--------------------------|------------|----------------------|
+| Profile Image  | JPEG, PNG, WebP, GIF     | 5MB        | 1:1 aspect ratio     |
+| Banner Image   | JPEG, PNG, WebP, GIF     | 5MB        | 16:9 aspect ratio    |
+| Resume         | PDF, DOC, DOCX           | 5MB        | -                    |
+| Blog Images    | JPEG, PNG, WebP, GIF     | 5MB        | Auto WebP conversion |
+
+
+### Response Format  
+**Success:**
+```json
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": { /* response data */ },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**Error:**
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "error": "Detailed error message",
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+
+
+### 4. {user_type} Profile Management Examples 
+
 #### Update Profile Image (Authenticated):
 ```http
 PATCH /api/v1/{user_type}/profile/image
@@ -339,6 +464,6 @@ Authorization: Bearer your_access_token_here
 
 ---
 
-### Last Updated: Nov 13, 2025
+### Last Updated: Nov 21, 2025
 
 ### Maintainer: Md Afzal Ansari

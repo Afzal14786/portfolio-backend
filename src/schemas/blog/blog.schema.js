@@ -1,6 +1,13 @@
 import mongoose from "mongoose";
+import { 
+  extractExcerpt, 
+  calculateReadTime, 
+  calculateWordCount,
+  extractCodeBlocks,
+  sanitizeHTML 
+} from '../../utils/blogUtils.js';
 
-const mongoose = require('mongoose');
+
 
 const blogSchema = new mongoose.Schema({
   // basic requirements
@@ -38,19 +45,18 @@ const blogSchema = new mongoose.Schema({
   
   // Cover Image
   coverImage: { 
-    type: String 
+    url: String,
+    cloudinaryId: String,
+    alt: String,
+    caption: String
   },
 
   images: [{
-    // all the images inserted in between the contents
-    cloudinaryId: { type: String, required: true }, // Cloudinary public_id
-    url: { type: String, required: true }, // Cloudinary URL
+    cloudinaryId: { type: String, required: true },
+    url: { type: String, required: true },
     alt: { type: String, default: '' },
     caption: { type: String, default: '' },
-    width: { type: Number },
-    height: { type: Number },
-    format: { type: String }, // webp, jpg, png    -- best is webp
-    size: { type: Number }, // File size in bytes
+    position: { type: Number },
     uploadedAt: { type: Date, default: Date.now }
   }],
 
@@ -92,6 +98,7 @@ const blogSchema = new mongoose.Schema({
   topic: { 
     type: String, 
     required: true,
+    trim: true,
     default: "Technology" 
   },
   tags: [{ 
@@ -103,7 +110,7 @@ const blogSchema = new mongoose.Schema({
   // publication status
   status: { 
     type: String, 
-    enum: ['draft', 'published', 'archived'], 
+    enum: ['draft', 'scheduled', 'published', 'archived'], 
     default: 'draft' 
   },
   // when the blog is published
@@ -173,40 +180,39 @@ blogSchema.index({ status: 1, publishedAt: -1 });
 blogSchema.index({ author: 1, createdAt: -1 });
 blogSchema.index({ topic: 1 });
 blogSchema.index({ tags: 1 });
-blogSchema.index({ slug: 1 });
 blogSchema.index({ 'images.cloudinaryId': 1 });
 
 // === MIDDLEWARE ===
 blogSchema.pre('save', function(next) {
-  // Auto-generate excerpt from content (first 500 chars)
-  if (this.isModified('content') && !this.excerpt) {
-    const textContent = this.content.replace(/<[^>]*>/g, ''); // Remove HTML tags
-    this.excerpt = textContent.substring(0, 200).trim();
-    if (textContent.length > 200) {
-      this.excerpt += '...';
-    }
-  }
-  
-  // Calculate word count
+  // Sanitize HTML content
   if (this.isModified('content')) {
-    const textContent = this.content.replace(/<[^>]*>/g, '');
-    this.wordCount = textContent.split(/\s+/).length;
-    
-    // Calculate read time {e.g : 200 words per minute}
-    const minutes = Math.ceil(this.wordCount / 200);
-    this.readTime = `${minutes} min read`;
+    this.content = sanitizeHTML(this.content);
   }
   
-  // Update likes count
-  this.likesCount = this.likes.length;
+  // Auto-generate excerpt from content
+  if (this.isModified('content') && !this.excerpt) {
+    this.excerpt = extractExcerpt(this.content, 200);
+  }
+  
+  // Calculate word count and read time
+  if (this.isModified('content')) {
+    this.wordCount = calculateWordCount(this.content);
+    this.readTime = calculateReadTime(this.content);
+  }
+  
+  // Update likes count (if using embedded likes)
+  if (this.isModified('likes')) {
+    this.likesCount = this.likes.length;
+  }
   
   // Set publishedAt when status changes to published
   if (this.isModified('status') && this.status === 'published' && !this.publishedAt) {
     this.publishedAt = new Date();
   }
   
+  // Extract and track code blocks
   if (this.isModified('content')) {
-    this.extractAndTrackCodeBlocks();
+    this.codeBlocks = extractCodeBlocks(this.content);
   }
 
   next();
@@ -214,28 +220,24 @@ blogSchema.pre('save', function(next) {
 
 // Extract images from content and track them
 blogSchema.methods.extractAndTrackImages = function() {
-  const imageRegex = /<img[^>]+src="([^">]+)"[^>]*>/g;
-  const imagesInContent = [];
-  let match;
+  const imagesInContent = extractImagesFromContent(this.content);
   
-  while ((match = imageRegex.exec(this.content)) !== null) {
-    const src = match[1];
-    // Check if this image is already tracked
-    const existingImage = this.images.find(img => img.url === src);
-    if (!existingImage && src.includes('cloudinary')) {
-      // Extract Cloudinary public_id from URL
-      const cloudinaryId = src.split('/').pop().split('.')[0];
-      imagesInContent.push({
-        cloudinaryId,
-        url: src,
-        alt: '', // Could extract from img alt attribute if needed
-        uploadedAt: new Date()
-      });
-    }
-  }
+  // Filter out images that are already tracked
+  const newImages = imagesInContent.filter(src => {
+    return !this.images.find(img => img.url === src);
+  }).map(src => {
+    // Extract Cloudinary public_id from URL
+    const cloudinaryId = src.split('/').pop().split('.')[0];
+    return {
+      cloudinaryId,
+      url: src,
+      alt: '',
+      uploadedAt: new Date()
+    };
+  });
   
   // Add new images to tracking
-  this.images = [...this.images, ...imagesInContent];
+  this.images = [...this.images, ...newImages];
 };
 
 // extrck the code section

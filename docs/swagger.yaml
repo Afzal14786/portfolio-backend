@@ -1,73 +1,353 @@
 openapi: 3.0.0
 info:
-  title: Portfolio Dashboard API Documentation
-  description: Complete API documentation for Portfolio Dashboard with Admin & Public authentication, OTP verification, and user management
-  version: 2.0.0
+  title: Portfolio Dashboard API
+  description: |
+    Complete REST API documentation for Portfolio Dashboard with dual authentication system (Admin & Public users).
+    
+    ## Features
+    - 🔐 OTP-based authentication for all critical operations
+    - 📝 Blog management with Medium-like editor
+    - 👤 Profile management with file uploads
+    - 📊 Analytics and dashboard
+    - 🔒 JWT + HTTP-only cookies security
+    - ☁️ Cloudinary file storage integration
+    - 🚀 Redis caching for performance
+    
+    ## Authentication Flow
+    All authentication operations require OTP verification sent via email.
+    
+    ### Registration Flow:
+    1. `POST /{user-type}-auth/signup/register` - Submit registration details
+    2. Check email for OTP (valid for 10 minutes)
+    3. `POST /{user-type}-auth/signup/verify-otp` - Verify OTP to activate account
+    
+    ### Login Flow:
+    1. `POST /{user-type}-auth/signin/login` - Submit credentials  
+    2. Check email for OTP (valid for 10 minutes)
+    3. `POST /{user-type}-auth/signin/verify` - Verify OTP to get access token
+    
+    ## Base URL
+    All endpoints are relative to: `http://localhost:8080/api/v1`
+    
+  version: 2.1.0
   contact:
     name: Md Afzal Ansari
     email: mdafzal14777@gmail.com
+    url: https://github.com/afzal14786
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
 servers:
   - url: http://localhost:8080/api/v1
     description: Local development server
+  - url: https://api.yourdomain.com/api/v1
+    description: Production server
 
+# ==================== SECURITY SCHEMES ====================
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained after OTP verification
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: HTTP-only cookie containing JWT token
+  
+  # ==================== COMMON SCHEMAS ====================
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        error:
+          type: string
+        code:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+    Pagination:
+      type: object
+      properties:
+        current:
+          type: integer
+          example: 1
+        pages:
+          type: integer
+          example: 5
+        total:
+          type: integer
+          example: 47
+    HealthCheck:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        status:
+          type: string
+          example: "operational"
+        timestamp:
+          type: string
+          format: date-time
+        environment:
+          type: string
+          example: "development"
+        uptime:
+          type: number
+          example: 3600.5
+
+# ==================== TAGS ====================
+tags:
+  - name: Health Check
+    description: API health monitoring endpoints
+  - name: Admin Authentication
+    description: Admin user registration, login, and OTP management
+  - name: Public Authentication  
+    description: Public user registration, login, and OTP management
+  - name: Admin Blog Management
+    description: Blog creation, editing, publishing, and analytics
+  - name: Public Blog Portfolio
+    description: Public blog viewing and engagement
+  - name: Admin Profile Management
+    description: Admin profile updates and file uploads
+  - name: Admin Security
+    description: Password and email management with OTP verification
+
+# ==================== PATHS ====================
 paths:
   # ==================== HEALTH CHECKS ====================
   /:
     get:
       summary: API Root Health Check
-      description: Check if API is running and get available endpoints
+      description: Check overall API status, version, and available endpoints
       tags:
         - Health Check
       responses:
         "200":
-          description: API is working
+          description: API is running successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HealthCheck'
+                  - type: object
+                    properties:
+                      version:
+                        type: string
+                        example: "2.1.0"
+                      baseUrl:
+                        type: string
+                      endpoints:
+                        type: object
+                      features:
+                        type: object
+
+  /health:
+    get:
+      summary: Server Health Status
+      description: Detailed server health check including memory usage and uptime
+      tags:
+        - Health Check
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HealthCheck'
+                  - type: object
+                    properties:
+                      memory:
+                        type: object
+                      pid:
+                        type: integer
+                      nodeVersion:
+                        type: string
+
+  /ready:
+    get:
+      summary: Service Readiness Check
+      description: Check if all services (Database, Redis, Cloudinary) are ready
+      tags:
+        - Health Check
+      responses:
+        "200":
+          description: All services are ready
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  success:
+                    type: boolean
+                    example: true
+                  status:
                     type: string
-                    example: "API is working!"
-                  version:
-                    type: string
-                    example: "1.0.0"
-                  endpoints:
+                    example: "ready"
+                  services:
                     type: object
 
-  /admin-auth:
+  /admin:
     get:
-      summary: Admin Auth Health Check
-      description: Check Admin authentication API status and available endpoints
+      summary: Admin API Health Check
+      description: Check Admin API status and available admin endpoints
       tags:
         - Health Check
       responses:
         "200":
-          description: Admin auth API is working
+          description: Admin API is operational
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Admin Auth API is working!"
+                allOf:
+                  - $ref: '#/components/schemas/HealthCheck'
+                  - type: object
+                    properties:
+                      endpoints:
+                        type: object
+                      authentication:
+                        type: string
 
-  /public-auth:
+  /admin/auth:
     get:
-      summary: Public Auth Health Check
-      description: Check Public authentication API status and available endpoints
+      summary: Admin Auth Service Health
+      description: Check Admin authentication service status
       tags:
         - Health Check
       responses:
         "200":
-          description: Public auth API is working
+          description: Admin auth service is running
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HealthCheck'
+                  - type: object
+                    properties:
+                      features:
+                        type: object
+                      endpoints:
+                        type: object
+
+  /admin/blogs:
+    get:
+      summary: Admin Blog Service Health
+      description: Check Admin blog management service status
+      tags:
+        - Health Check
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Admin blog service is operational
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HealthCheck'
+                  - type: object
+                    properties:
+                      features:
+                        type: object
+                      endpoints:
+                        type: object
+
+  /admin/profile:
+    get:
+      summary: Admin Profile Service Health
+      description: Check Admin profile management service status
+      tags:
+        - Health Check
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Admin profile service is operational
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HealthCheck'
+                  - type: object
+                    properties:
+                      features:
+                        type: object
+                      endpoints:
+                        type: object
+
+  /admin/password:
+    get:
+      summary: Admin Password Service Health
+      description: Check Admin password management service status
+      tags:
+        - Health Check
+      responses:
+        "200":
+          description: Admin password service is operational
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HealthCheck'
+                  - type: object
+                    properties:
+                      security:
+                        type: object
+                      endpoints:
+                        type: object
+
+  /admin/email:
+    get:
+      summary: Admin Email Service Health
+      description: Check Admin email management service status
+      tags:
+        - Health Check
+      responses:
+        "200":
+          description: Admin email service is operational
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HealthCheck'
+                  - type: object
+                    properties:
+                      security:
+                        type: string
+                      endpoints:
+                        type: object
 
   # ==================== ADMIN AUTHENTICATION ====================
-  /admin-auth/signup/register:
+  /admin/auth/signup/register:
     post:
       summary: Register New Admin
-      description: Register a new admin user with OTP verification
+      description: Register a new admin user. OTP will be sent to the provided email for verification.
       tags:
         - Admin Authentication
       requestBody:
@@ -87,53 +367,63 @@ paths:
                   example: "Admin User"
                   minLength: 2
                   maxLength: 50
+                  description: Full name of the admin
                 user_name:
                   type: string
                   example: "adminuser"
                   minLength: 3
                   maxLength: 20
+                  pattern: '^[a-zA-Z0-9_]+$'
+                  description: Unique username (alphanumeric and underscore only)
                 email:
                   type: string
                   format: email
                   example: "admin@example.com"
+                  description: Valid email address
                 password:
                   type: string
-                  example: "password123"
+                  example: "Password123!"
                   minLength: 8
+                  description: Password (min 8 characters with uppercase, lowercase, number)
       responses:
-        "200":
-          description: Admin registration successful - OTP sent to email
+        "201":
+          description: Admin registration initiated - OTP sent to email
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Admin registration successful! Please check your email to verify your account."
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
                     properties:
-                      email:
-                        type: string
-                      userType:
-                        type: string
-                        example: "admin"
-                      expiresIn:
-                        type: number
-                        example: 600
+                      data:
+                        type: object
+                        properties:
+                          email:
+                            type: string
+                          userType:
+                            type: string
+                            example: "admin"
+                          expiresIn:
+                            type: number
+                            example: 600
+                            description: "OTP expiration time in seconds"
         "400":
           description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         "409":
           description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /admin-auth/signup/verify-otp:
+  /admin/auth/signup/verify-otp:
     post:
       summary: Verify Admin Registration OTP
-      description: Verify OTP to complete admin registration
+      description: Verify OTP to complete admin registration and activate account
       tags:
         - Admin Authentication
       requestBody:
@@ -153,27 +443,162 @@ paths:
                 otp:
                   type: string
                   example: "123456"
+                  minLength: 6
+                  maxLength: 6
+                  description: "6-digit OTP received via email"
       responses:
         "200":
           description: Admin account verified and registered successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  success:
-                    type: boolean
-                  data:
-                    type: object
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
                     properties:
-                      user:
+                      data:
                         type: object
-                      accessToken:
-                        type: string
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              _id:
+                                type: string
+                              name:
+                                type: string
+                              email:
+                                type: string
+                              userType:
+                                type: string
+                              isVerified:
+                                type: boolean
+                          accessToken:
+                            type: string
+                            description: "JWT access token"
+                          refreshToken:
+                            type: string
+                            description: "JWT refresh token (HTTP-only cookie)"
+        "400":
+          description: Invalid OTP or OTP expired
+        "404":
+          description: Registration request not found
 
-  /admin-auth/auth-otp/status:
+  /admin/auth/signin/login:
+    post:
+      summary: Admin Login Request
+      description: Initiate admin login process. OTP will be sent to registered email.
+      tags:
+        - Admin Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "admin@example.com"
+                password:
+                  type: string
+                  example: "Password123!"
+      responses:
+        "200":
+          description: OTP sent to email for login verification
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          email:
+                            type: string
+                          expiresIn:
+                            type: number
+                            example: 600
+
+  /admin/auth/signin/verify:
+    post:
+      summary: Verify Admin Login OTP
+      description: Verify OTP to complete admin login and receive access token
+      tags:
+        - Admin Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        "200":
+          description: Admin login verified successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                          accessToken:
+                            type: string
+                          refreshToken:
+                            type: string
+
+  /admin/auth/auth-otp/resend:
+    post:
+      summary: Resend Admin Registration OTP
+      description: Resend OTP for admin registration (no authentication required)
+      tags:
+        - Admin Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - type
+              properties:
+                email:
+                  type: string
+                  format: email
+                type:
+                  type: string
+                  enum: [registration]
+                  example: "registration"
+      responses:
+        "200":
+          description: OTP resent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /admin/auth/auth-otp/status:
     get:
       summary: Check Admin Registration OTP Status
       description: Check if OTP exists and is active for admin registration
@@ -198,30 +623,31 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: object
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
                     properties:
-                      exists:
-                        type: boolean
-                      email:
-                        type: string
-                      type:
-                        type: string
-                      userType:
-                        type: string
-                      message:
-                        type: string
+                      data:
+                        type: object
+                        properties:
+                          exists:
+                            type: boolean
+                          email:
+                            type: string
+                          type:
+                            type: string
+                          expiresAt:
+                            type: string
+                            format: date-time
 
-  /admin-auth/auth-otp/resend:
+  /admin/auth/otp/resend:
     post:
-      summary: Resend Admin Registration OTP
-      description: Resend OTP for admin registration
+      summary: Resend OTP (Authenticated Admin)
+      description: Resend OTP for various operations (password update, email update, etc.)
       tags:
         - Admin Authentication
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -229,25 +655,752 @@ paths:
             schema:
               type: object
               required:
-                - email
                 - type
               properties:
-                email:
-                  type: string
-                  format: email
                 type:
                   type: string
-                  enum: [registration]
+                  enum: [password_update, email_update]
+                  example: "password_update"
       responses:
         "200":
           description: OTP resent successfully
 
-  /admin-auth/signin/login:
-    post:
-      summary: Admin Login Request
-      description: Initiate admin login with OTP verification
+  /admin/auth/otp/status:
+    get:
+      summary: Check OTP Status (Authenticated Admin)
+      description: Check status of active OTP for authenticated admin
       tags:
         - Admin Authentication
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [password_update, email_update]
+      responses:
+        "200":
+          description: OTP status retrieved successfully
+
+  # ==================== ADMIN BLOG MANAGEMENT ====================
+  /admin/blogs:
+    get:
+      summary: Get Admin's Blogs
+      description: Retrieve paginated list of admin's blogs with analytics data
+      tags:
+        - Admin Blog Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published, archived, scheduled]
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [updated, created, published, views]
+            default: updated
+      responses:
+        "200":
+          description: Blogs retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            title:
+                              type: string
+                            slug:
+                              type: string
+                            status:
+                              type: string
+                            views:
+                              type: integer
+                            likesCount:
+                              type: integer
+                            commentsCount:
+                              type: integer
+                            sharesCount:
+                              type: integer
+                            publishedAt:
+                              type: string
+                              format: date-time
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+                      statusCounts:
+                        type: array
+
+    post:
+      summary: Create New Blog
+      description: Create a new blog post (draft by default)
+      tags:
+        - Admin Blog Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - content
+              properties:
+                title:
+                  type: string
+                  example: "My First Blog Post"
+                  maxLength: 200
+                content:
+                  type: string
+                  example: "Blog content in HTML format..."
+                topic:
+                  type: string
+                  example: "Technology"
+                  default: "Technology"
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: ["javascript", "nodejs", "web-development"]
+                status:
+                  type: string
+                  enum: [draft, published]
+                  default: draft
+                coverImage:
+                  type: string
+                  description: "Cloudinary URL for cover image"
+                metaTitle:
+                  type: string
+                  maxLength: 60
+                metaDescription:
+                  type: string
+                  maxLength: 160
+                canonicalUrl:
+                  type: string
+      responses:
+        "201":
+          description: Blog created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+
+  /admin/blogs/stats:
+    get:
+      summary: Get Dashboard Statistics
+      description: Retrieve admin dashboard statistics and analytics
+      tags:
+        - Admin Blog Management
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          overview:
+                            type: object
+                          trending:
+                            type: array
+
+  /admin/blogs/analytics/{blogId}:
+    get:
+      summary: Get Blog Analytics
+      description: Retrieve detailed analytics for a specific blog
+      tags:
+        - Admin Blog Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: blogId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Analytics retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          blog:
+                            type: object
+                          analytics:
+                            type: object
+                          breakdown:
+                            type: object
+
+  /admin/blogs/{id}:
+    get:
+      summary: Get Blog by ID
+      description: Retrieve a specific blog by ID for editing
+      tags:
+        - Admin Blog Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+
+    put:
+      summary: Update Blog
+      description: Update blog content and metadata
+      tags:
+        - Admin Blog Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                topic:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                coverImage:
+                  type: string
+                status:
+                  type: string
+                metaTitle:
+                  type: string
+                metaDescription:
+                  type: string
+                canonicalUrl:
+                  type: string
+      responses:
+        "200":
+          description: Blog updated successfully
+
+    delete:
+      summary: Delete Blog
+      description: Delete a blog (soft delete/archive by default)
+      tags:
+        - Admin Blog Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: hardDelete
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Blog deleted successfully
+
+  /admin/blogs/draft:
+    post:
+      summary: Create Draft
+      description: Create a new blog draft with minimal required fields
+      tags:
+        - Admin Blog Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Untitled"
+                content:
+                  type: string
+                  example: ""
+                topic:
+                  type: string
+                  example: "Technology"
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "201":
+          description: Draft created successfully
+
+  /admin/blogs/{blogId}/auto-save:
+    post:
+      summary: Auto-save Draft
+      description: Auto-save blog draft content (Medium-like functionality)
+      tags:
+        - Admin Blog Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: blogId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                topic:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Draft auto-saved successfully
+
+  /admin/blogs/{id}/status:
+    patch:
+      summary: Update Blog Status
+      description: Update blog publication status (draft/published/archived/scheduled)
+      tags:
+        - Admin Blog Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [draft, published, archived, scheduled]
+                publishedAt:
+                  type: string
+                  format: date-time
+      responses:
+        "200":
+          description: Blog status updated successfully
+
+  /admin/blogs/{blogId}/images:
+    post:
+      summary: Upload Blog Image
+      description: Upload image for blog content (supports JPEG, PNG, WebP, GIF up to 5MB)
+      tags:
+        - Admin Blog Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: blogId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Image file to upload
+      responses:
+        "200":
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          cloudinaryId:
+                            type: string
+                          url:
+                            type: string
+                          uploadedAt:
+                            type: string
+                            format: date-time
+
+  # ==================== PUBLIC BLOG PORTFOLIO ====================
+  /blogs:
+    get:
+      summary: Get All Published Blogs
+      description: Retrieve paginated list of all published blogs with filtering and search
+      tags:
+        - Public Blog Portfolio
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+        - name: topic
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, popular, trending]
+            default: newest
+      responses:
+        "200":
+          description: Blogs retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+
+  /blogs/{slug}:
+    get:
+      summary: Get Blog by Slug
+      description: Retrieve a specific published blog by its slug with engagement data
+      tags:
+        - Public Blog Portfolio
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "my-awesome-blog-post"
+      responses:
+        "200":
+          description: Blog retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          blog:
+                            type: object
+                          comments:
+                            type: array
+                          relatedBlogs:
+                            type: array
+
+  # ==================== ADMIN PROFILE MANAGEMENT ====================
+  /admin/profile/update/image:
+    patch:
+      summary: Update Profile Image
+      description: Upload or update admin profile image (supports JPEG, PNG, WebP, GIF up to 5MB)
+      tags:
+        - Admin Profile Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profile_image:
+                  type: string
+                  format: binary
+                  description: Profile image file (1:1 aspect ratio recommended)
+      responses:
+        "200":
+          description: Profile image updated successfully
+
+  /admin/profile/update/banner:
+    patch:
+      summary: Update Banner Image
+      description: Upload or update admin banner image (supports JPEG, PNG, WebP, GIF up to 5MB)
+      tags:
+        - Admin Profile Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                banner_image:
+                  type: string
+                  format: binary
+                  description: Banner image file (16:9 aspect ratio recommended)
+      responses:
+        "200":
+          description: Banner image updated successfully
+
+  /admin/profile/update/resume:
+    patch:
+      summary: Update Resume
+      description: Upload or update admin resume (supports PDF, DOC, DOCX up to 5MB)
+      tags:
+        - Admin Profile Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                resume:
+                  type: string
+                  format: binary
+                  description: Resume document file
+      responses:
+        "200":
+          description: Resume updated successfully
+
+  /admin/profile/update/social-media:
+    patch:
+      summary: Update Social Media Links
+      description: Update admin social media profiles and links
+      tags:
+        - Admin Profile Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                socialMedia:
+                  type: object
+                  properties:
+                    github:
+                      type: string
+                      format: uri
+                    linkedin:
+                      type: string
+                      format: uri
+                    twitter:
+                      type: string
+                      format: uri
+                    portfolio:
+                      type: string
+                      format: uri
+      responses:
+        "200":
+          description: Social media links updated successfully
+
+  /admin/profile/update/basic-info:
+    patch:
+      summary: Update Basic Info
+      description: Update admin basic information (name, username, bio, etc.)
+      tags:
+        - Admin Profile Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                user_name:
+                  type: string
+                bio:
+                  type: string
+                location:
+                  type: string
+                website:
+                  type: string
+                  format: uri
+      responses:
+        "200":
+          description: Basic info updated successfully
+
+  /admin/profile/update/bulk-update:
+    patch:
+      summary: Bulk Update Profile
+      description: Update multiple profile fields in a single request
+      tags:
+        - Admin Profile Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                user_name:
+                  type: string
+                bio:
+                  type: string
+                socialMedia:
+                  type: object
+                readingResources:
+                  type: array
+                quote:
+                  type: string
+                hobbies:
+                  type: array
+      responses:
+        "200":
+          description: Profile updated successfully
+
+  /admin/profile/info:
+    get:
+      summary: Get Profile Information
+      description: Retrieve complete admin profile information
+      tags:
+        - Admin Profile Management
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profile information retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+
+  # ==================== ADMIN SECURITY MANAGEMENT ====================
+  /admin/password/reset/request:
+    post:
+      summary: Request Password Reset
+      description: Request password reset OTP (no authentication required)
+      tags:
+        - Admin Security
       requestBody:
         required: true
         content:
@@ -256,23 +1409,21 @@ paths:
               type: object
               required:
                 - email
-                - password
               properties:
                 email:
                   type: string
                   format: email
-                password:
-                  type: string
+                  example: "admin@example.com"
       responses:
         "200":
-          description: OTP sent to email for login verification
+          description: Password reset OTP sent to email
 
-  /admin-auth/signin/verify:
+  /admin/password/reset/verify-otp:
     post:
-      summary: Verify Admin Login OTP
-      description: Verify OTP to complete admin login
+      summary: Verify Password Reset OTP
+      description: Verify password reset OTP and set new password (no authentication required)
       tags:
-        - Admin Authentication
+        - Admin Security
       requestBody:
         required: true
         content:
@@ -282,32 +1433,40 @@ paths:
               required:
                 - email
                 - otp
+                - newPassword
               properties:
                 email:
                   type: string
                   format: email
                 otp:
                   type: string
+                  example: "123456"
+                newPassword:
+                  type: string
+                  example: "NewPassword123!"
+                  minLength: 8
       responses:
         "200":
-          description: Admin login verified successfully
+          description: Password reset successfully
 
-  /admin-auth/signin/logout:
+  /admin/password/update/request:
     post:
-      summary: Admin Logout
-      description: Logout admin user and revoke refresh token
+      summary: Request Password Update
+      description: Request password update OTP (authentication required)
       tags:
-        - Admin Authentication
+        - Admin Security
+      security:
+        - bearerAuth: []
       responses:
         "200":
-          description: Logged out successfully
+          description: Password update OTP sent to email
 
-  /admin-auth/auth-otp/resend:
+  /admin/password/update/verify-otp:
     post:
-      summary: Resend OTP (Authenticated Admin)
-      description: Resend OTP for various operations (password reset, email update, etc.)
+      summary: Verify Password Update OTP
+      description: Verify password update OTP and set new password (authentication required)
       tags:
-        - Admin OTP Operations
+        - Admin Security
       security:
         - bearerAuth: []
       requestBody:
@@ -317,37 +1476,75 @@ paths:
             schema:
               type: object
               required:
-                - type
+                - otp
+                - newPassword
               properties:
-                type:
+                otp:
                   type: string
-                  enum: [password_reset, password_update, email_update, username_update]
-                  example: "password_reset"
+                  example: "123456"
+                newPassword:
+                  type: string
+                  example: "NewPassword123!"
+                  minLength: 8
       responses:
         "200":
-          description: OTP resent successfully
+          description: Password updated successfully
 
-  /admin-auth/auth-otp/status:
-    get:
-      summary: Check OTP Status (Authenticated Admin)
-      description: Check status of active OTP for authenticated admin
+  /admin/email/request-update:
+    post:
+      summary: Request Email Update
+      description: Request email update OTP (authentication required)
       tags:
-        - Admin OTP Operations
+        - Admin Security
       security:
         - bearerAuth: []
-      parameters:
-        - name: type
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [password_reset, password_update, email_update, username_update]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newEmail
+              properties:
+                newEmail:
+                  type: string
+                  format: email
+                  example: "newadmin@example.com"
       responses:
         "200":
-          description: OTP status retrieved successfully
+          description: Email update OTP sent to new email address
 
-  # ==================== PUBLIC USER AUTHENTICATION ====================
-  /public-auth/signup/register:
+  /admin/email/verify-otp:
+    post:
+      summary: Verify Email Update OTP
+      description: Verify email update OTP and update email address (authentication required)
+      tags:
+        - Admin Security
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newEmail
+                - otp
+              properties:
+                newEmail:
+                  type: string
+                  format: email
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        "200":
+          description: Email updated successfully
+
+  # ==================== PUBLIC AUTHENTICATION (Similar to Admin) ====================
+  /auth/signup/register:
     post:
       summary: Register New Public User
       description: Register a new public user with OTP verification
@@ -377,12 +1574,12 @@ paths:
                   example: "user@example.com"
                 password:
                   type: string
-                  example: "password123"
+                  example: "Password123!"
       responses:
-        "200":
-          description: Public user registration successful - OTP sent to email
+        "201":
+          description: Public user registration initiated - OTP sent to email
 
-  /public-auth/signup/verify-otp:
+  /auth/signup/verify-otp:
     post:
       summary: Verify Public User Registration OTP
       description: Verify OTP to complete public user registration
@@ -407,56 +1604,7 @@ paths:
         "200":
           description: Public user account verified and registered successfully
 
-  /public-auth/auth-otp/status:
-    get:
-      summary: Check Public Registration OTP Status
-      description: Check if OTP exists and is active for public user registration
-      tags:
-        - Public Authentication
-      parameters:
-        - name: email
-          in: query
-          required: true
-          schema:
-            type: string
-            format: email
-        - name: type
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [registration]
-      responses:
-        "200":
-          description: OTP status retrieved successfully
-
-  /public-auth/auth-otp/resend:
-    post:
-      summary: Resend Public Registration OTP
-      description: Resend OTP for public user registration
-      tags:
-        - Public Authentication
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - email
-                - type
-              properties:
-                email:
-                  type: string
-                  format: email
-                type:
-                  type: string
-                  enum: [registration]
-      responses:
-        "200":
-          description: OTP resent successfully
-
-  /public-auth/signin/login:
+  /auth/signin/login:
     post:
       summary: Public User Login Request
       description: Initiate public user login with OTP verification
@@ -481,7 +1629,7 @@ paths:
         "200":
           description: OTP sent to email for login verification
 
-  /public-auth/signin/verify:
+  /auth/signin/verify:
     post:
       summary: Verify Public User Login OTP
       description: Verify OTP to complete public user login
@@ -506,77 +1654,4 @@ paths:
         "200":
           description: Public user login verified successfully
 
-  /public-auth/signin/logout:
-    post:
-      summary: Public User Logout
-      description: Logout public user and revoke refresh token
-      tags:
-        - Public Authentication
-      responses:
-        "200":
-          description: Logged out successfully
-
-  /public-auth/otp/resend:
-    post:
-      summary: Resend OTP (Authenticated Public User)
-      description: Resend OTP for various operations (password reset, password update)
-      tags:
-        - Public OTP Operations
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - type
-              properties:
-                type:
-                  type: string
-                  enum: [password_reset, password_update]
-                  example: "password_reset"
-      responses:
-        "200":
-          description: OTP resent successfully
-
-  /public-auth/otp/status:
-    get:
-      summary: Check OTP Status (Authenticated Public User)
-      description: Check status of active OTP for authenticated public user
-      tags:
-        - Public OTP Operations
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: type
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [password_reset, password_update]
-      responses:
-        "200":
-          description: OTP status retrieved successfully
-
-# Security Schemes
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-# Tags
-tags:
-  - name: Health Check
-    description: API health check endpoints
-  - name: Admin Authentication
-    description: Admin user registration and authentication
-  - name: Admin OTP Operations
-    description: OTP operations for authenticated admin users
-  - name: Public Authentication
-    description: Public user registration and authentication
-  - name: Public OTP Operations
-    description: OTP operations for authenticated public users
+  # Note: Public user profile, password, and other endpoints would follow similar pattern as admin

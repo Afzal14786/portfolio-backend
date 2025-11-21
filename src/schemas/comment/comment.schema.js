@@ -6,13 +6,11 @@ const commentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Blog',
     required: true,
-    index: true
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PublicUser',
     required: true,
-    index: true
   },
 
   // comment content
@@ -28,7 +26,6 @@ const commentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment',
     default: null,
-    index: true
   },
   replies: [{
     type: mongoose.Schema.Types.ObjectId,

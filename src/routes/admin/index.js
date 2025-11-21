@@ -1,26 +1,58 @@
 import express from "express";
 
 // Import sub-routes
-import passwordRoutes from "./password/index.js";
-import profileRoutes from "./profile/index.js";
-import emailRoutes from "./email/index.js";
+import adminAuth from './auth/index.js';
+import adminBlogRoutes from './blog/index.route.js';
+import adminProfileRoutes from './profile/index.js';
+import adminPasswordRoutes from './password/index.js';
+import adminEmailRoutes from './email/index.js';
 
 const router = express.Router();
 
-// ==================== USER ROUTES ====================
-router.use("/password", passwordRoutes);
-router.use("/profile", profileRoutes);
-router.use("/update_email", emailRoutes);
+// ==================== ADMIN ROUTES ====================
+router.use('/auth', adminAuth);
+router.use('/blogs', adminBlogRoutes);
+router.use('/profile', adminProfileRoutes);
+router.use('/password', adminPasswordRoutes);
+router.use('/email', adminEmailRoutes);
 
-// ==================== USER HEALTH CHECK ====================
+// ==================== ADMIN HEALTH CHECK ====================
 router.get("/", (req, res) => {
   res.json({
-    message: "User API is working!",
+    success: true,
+    message: "✅ Admin API is operational!",
+    status: "healthy",
+    timestamp: new Date().toISOString(),
     endpoints: {
-      password: "/admin/password",
-      profile: "/admin/profile", 
-      email: "/admin/email"
-    }
+      auth: {
+        path: "/admin/auth",
+        description: "Admin authentication & authorization",
+        methods: ["POST"]
+      },
+      blogs: {
+        path: "/admin/blogs",
+        description: "Blog management & content creation",
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+      },
+      profile: {
+        path: "/admin/profile",
+        description: "Admin profile management",
+        methods: ["GET", "PATCH", "POST"]
+      },
+      password: {
+        path: "/admin/password",
+        description: "Password management & security",
+        methods: ["POST"]
+      },
+      email: {
+        path: "/admin/email",
+        description: "Email update & verification",
+        methods: ["POST"]
+      }
+    },
+    authentication: "Required for all endpoints except /admin/auth",
+    rateLimiting: "Enabled for all endpoints",
+    version: "1.0.0"
   });
 });
 
