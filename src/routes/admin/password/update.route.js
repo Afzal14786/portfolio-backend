@@ -12,7 +12,7 @@ const router = express.Router();
 router.use(protect);
 
 // Logged-in password update flow
-router.post("/request", wrapAsync(updatePassword));          // Request update OTP
+router.post("/", wrapAsync(updatePassword));          // Request update OTP
 router.post("/verify-otp", wrapAsync(verifyOtpPassword));    // Verify & update password
 
 export default router;

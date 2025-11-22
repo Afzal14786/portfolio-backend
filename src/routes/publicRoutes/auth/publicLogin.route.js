@@ -5,7 +5,7 @@ import {login, verifyLogin, logout} from "../../../controllers/publicUser/auth/p
 
 const router = express.Router();
 
-router.post("/login", wrapAsync(login));
+router.post("/", wrapAsync(login));
 router.post("/verify", wrapAsync(verifyLogin));
 router.post("/logout", wrapAsync(logout));
 

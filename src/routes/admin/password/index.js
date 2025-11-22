@@ -21,7 +21,7 @@ router.get("/", (req, res) => {
     },
     endpoints: {
       reset: {
-        "POST /admin/password/reset/request": {
+        "POST /admin/password/reset/": {
           description: "Forgot password OTP request (no authentication)",
           parameters: {
             "email": "string (registered admin email)"
@@ -37,7 +37,7 @@ router.get("/", (req, res) => {
         }
       },
       update: {
-        "POST /admin/password/update/request": {
+        "POST /admin/password/update/": {
           description: "Logged-in password update OTP request (authentication required)",
           authentication: "Bearer token required"
         },

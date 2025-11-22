@@ -27,6 +27,7 @@ router.get("/", (req, res) => {
       admin: {
         auth: "/api/v1/admin/auth",
         blogs: "/api/v1/admin/blogs",
+        analysis: "/api/v1/admin/analysis", // NEW
         profile: "/api/v1/admin/profile",
         password: "/api/v1/admin/password",
         email: "/api/v1/admin/email"
@@ -44,14 +45,13 @@ router.get("/", (req, res) => {
 
 // ==================== API ROUTES ====================
 
-// Public routes (no authentication required)
+// Public routes (no authentication required for most endpoints)
 router.use("/", publicRoutes);
 
-// Admin routes (authentication may be required at sub-route level)
+// Admin routes (authentication required)
 router.use("/admin", adminRoutes);
 
 // ==================== 404 HANDLER ====================
-// Using regex pattern to avoid path-to-regexp error
 router.use(/.*/, (req, res) => {
   res.status(404).json({
     success: false,
@@ -60,21 +60,26 @@ router.use(/.*/, (req, res) => {
     availableEndpoints: {
       public: {
         "GET /": "API health check and information",
-        "GET /blogs": "Get all published blogs with pagination",
+        "GET /blogs": "Get all published blogs",
         "GET /blogs/:slug": "Get specific blog by slug",
-        "POST /auth/*": "Public user authentication endpoints",
+        "POST /blogs/:id/comments": "Add comment to blog",
+        "POST /blogs/:id/like": "Like a blog",
+        "POST /blogs/:id/share": "Share a blog",
+        "POST /auth/*": "Public user authentication",
         "GET /profile/*": "Public profile routes",
         "POST /password/*": "Public password management"
       },
       admin: {
-        "GET /admin": "Admin API health check", 
-        "GET /admin/blogs": "Get admin's blogs (protected)",
-        "POST /admin/blogs": "Create new blog (protected)",
-        "POST /admin/auth/*": "Admin authentication endpoints",
-        "GET /admin/profile/*": "Admin profile management (protected)"
+        "GET /admin": "Admin dashboard",
+        "GET /admin/blogs": "Get all blogs with analytics",
+        "POST /admin/blogs": "Create new blog",
+        "GET /admin/analysis/comments": "Get comments analytics",
+        "GET /admin/analysis/likes": "Get likes analytics",
+        "GET /admin/analysis/shares": "Get shares analytics",
+        "POST /admin/auth/*": "Admin authentication",
+        "GET /admin/profile/*": "Admin profile management"
       }
-    },
-    tip: "Check the root endpoint GET / for complete API documentation and health status"
+    }
   });
 });
 

@@ -8,7 +8,7 @@ import {
 const router = express.Router();
 
 // Password reset --- authentication not required
-router.post("/request", wrapAsync(resetPassword));           // Request for token
+router.post("/", wrapAsync(resetPassword));           // Request for token
 router.post("/verify", wrapAsync(verifyReset));       // Verify the token
 
 export default router;

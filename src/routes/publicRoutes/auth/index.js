@@ -18,11 +18,11 @@ router.get("/", (req, res) => {
     message: "Public Auth API is working!",
     endpoints: {
       login: {
-        "POST /": "Public Login request",
+        "POST /signin": "Public Login request",
         "POST /verify": "Verify public login OTP", 
       },
       register: {
-        "POST /": "Public register request",
+        "POST /signup": "Public register request",
         "POST /verify-otp": "Verify public registration OTP"
       },
       otp: {
