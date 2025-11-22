@@ -5,7 +5,7 @@ import { login, verifyLogin, logout } from "../../../controllers/admin/auth/logi
 const router = express.Router();
 
 router.post("/", wrapAsync(login));
-router.post("/verify", wrapAsync(verifyLogin));
+router.post("/verify-otp", wrapAsync(verifyLogin));
 router.post("/logout", wrapAsync(logout));
 
 export default router;

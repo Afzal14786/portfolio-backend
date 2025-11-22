@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { adminModel } from "../../../../models/admin/user.model.js";
 import { sendEmail } from "../../../../emails/sendEmail.js";
+import {getPasswordResetLinkTemplate, getPasswordChangedTemplate} from "../../../../services/email/email.templates.js"
 
 import bcrypt from "bcryptjs";
 

@@ -5,20 +5,20 @@ export {
   getLoginTemplate,
   getPasswordUpdateTemplate,
   getEmailUpdateTemplate
-} from './auth.templates.js';
+} from './templates/auth.templates.js';
 
 export { 
   getNotificationEmail,
   getLoginSuccessTemplate
-} from './notification.templates.js';
+} from './templates/notification.templates.js';
 
 export { 
   getPasswordResetLinkTemplate,
   getPasswordChangedTemplate
-} from './passwordReset.templates.js';
+} from './templates/passwordReset.templates.js';
 
 export { 
   getWelcomeTemplate
-} from './welcome.templates.js';
+} from './templates/welcome.templates.js';
 
-export { BaseTemplate } from './base.templates.js';
+export { BaseTemplate } from './templates/base.templates.js';
