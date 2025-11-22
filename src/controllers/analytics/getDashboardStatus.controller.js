@@ -52,20 +52,33 @@ export const getDashboardStats = async (req, res) => {
     ]);
 
     // Get trending blogs
-    const trendingBlogs = await blogModel.find({ author: authorId, status: 'published' })
+    const trendingBlogs = await blogModel.find({ 
+      author: authorId, 
+      status: 'published' 
+    })
       .sort({ views: -1 })
       .limit(5)
-      .select('title slug views likesCount commentsCount publishedAt');
+      .select('title slug views likesCount commentsCount shares publishedAt topic tags readTime coverImage');
+
+    // Handle case when no blogs exist
+    const stats = blogStats[0] || {
+      totalBlogs: 0,
+      publishedBlogs: 0,
+      draftBlogs: 0,
+      scheduledBlogs: 0,
+      totalViews: 0,
+      totalWords: 0
+    };
 
     res.json({
       success: true,
       data: {
         overview: {
-          ...blogStats[0],
+          ...stats,
           totalLikes,
           totalComments,
           totalShares,
-          totalReaders: blogStats[0]?.totalViews || 0
+          totalReaders: stats.totalViews || 0  // Use totalViews as readers for now
         },
         trending: trendingBlogs
       }

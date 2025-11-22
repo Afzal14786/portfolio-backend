@@ -9,6 +9,8 @@ import {
   autoSaveDraft,
   getUserBlogs,
   getBlogById,
+  getBlogBySlug,
+  getPublishedBlogs,
   updateBlog,
   updateBlogStatus,
   deleteBlog,
@@ -18,7 +20,8 @@ import {
 // Import analytics controllers
 import {
   getDashboardStats,
-  getBlogAnalytics
+  getBlogAnalytics,
+  getBlogsByStatus
 } from '../../../controllers/analytics/index.js';
 
 const router = express.Router();
@@ -32,6 +35,9 @@ router.use(protect);
 router.get('/', getUserBlogs);                    // GET /admin/blogs - Get user's blogs
 router.get('/stats', getDashboardStats);          // GET /admin/blogs/stats - Dashboard statistics
 router.get('/analytics/:blogId', getBlogAnalytics); // GET /admin/blogs/analytics/:blogId - Blog analytics
+router.get('/status/:status', getBlogsByStatus); // GET /admin/blogs/status/:status
+router.get('/read', getPublishedBlogs);
+router.get('/read/:slug', getBlogBySlug);
 router.get('/:id', getBlogById);                  // GET /admin/blogs/:id - Get blog by ID for editing
 router.post('/', createBlog);                     // POST /admin/blogs - Create new blog
 router.post('/draft', createDraft);               // POST /admin/blogs/draft - Create draft
@@ -41,6 +47,7 @@ router.patch('/:id/status', updateBlogStatus);    // PATCH /admin/blogs/:id/stat
 router.delete('/:id', deleteBlog);                // DELETE /admin/blogs/:id - Delete blog
 
 // Content management
+router.post('/upload-image', upload.single('image'), uploadImage); // POST /admin/blogs/upload-image - Upload image
 router.post('/:blogId/images', upload.single('image'), uploadImage); // POST /admin/blogs/:blogId/images - Upload image
 
 // ==================== BLOG API HEALTH CHECK ====================

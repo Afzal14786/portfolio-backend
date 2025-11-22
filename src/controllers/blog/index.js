@@ -8,6 +8,7 @@ export { getAllBlogs } from './read/getAllBlogs.controller.js';
 export { getBlogBySlug } from './read/getBlogBySlug.controller.js';
 export { getUserBlogs } from './read/getUserBlog.controller.js';
 export { getBlogById } from './read/getBlogById.controller.js';
+export { getPublishedBlogs } from './read/getPublishedBlogs.controller.js'
 
 // Update Operations
 export { updateBlog } from './update/updateBlog.controller.js';

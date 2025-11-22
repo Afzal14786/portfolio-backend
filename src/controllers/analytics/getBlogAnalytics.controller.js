@@ -9,7 +9,7 @@ export const getBlogAnalytics = async (req, res) => {
     const authorId = req.user._id;
 
     const blog = await blogModel.findOne({ _id: blogId, author: authorId })
-      .select('title views publishedAt');
+      .select('title views publishedAt likesCount commentsCount shares readTime topic');
 
     if (!blog) {
       return res.status(404).json({
@@ -22,13 +22,16 @@ export const getBlogAnalytics = async (req, res) => {
     const [likes, comments, shares, platformStats] = await Promise.all([
       likesModel.find({ target: blogId, targetType: 'blog' })
         .populate('user', 'name avatar')
-        .sort({ createdAt: -1 }),
+        .sort({ createdAt: -1 })
+        .limit(10),  // Limit to prevent overload
       commentModel.find({ blog: blogId, status: 'active' })
         .populate('author', 'name avatar')
-        .sort({ createdAt: -1 }),
+        .sort({ createdAt: -1 })
+        .limit(10),
       shareModel.find({ blog: blogId })
         .populate('user', 'name avatar')
-        .sort({ createdAt: -1 }),
+        .sort({ createdAt: -1 })
+        .limit(10),
       shareModel.aggregate([
         { $match: { blog: blogId } },
         {
@@ -41,7 +44,8 @@ export const getBlogAnalytics = async (req, res) => {
       ])
     ]);
 
-    const engagementRate = ((likes.length + comments.length) / blog.views * 100) || 0;
+    const totalEngagements = likes.length + comments.length + shares.length;
+    const engagementRate = blog.views > 0 ? ((totalEngagements / blog.views) * 100) : 0;
 
     res.json({
       success: true,
@@ -49,7 +53,7 @@ export const getBlogAnalytics = async (req, res) => {
         blog,
         analytics: {
           engagementRate: engagementRate.toFixed(2),
-          totalEngagements: likes.length + comments.length + shares.length,
+          totalEngagements,
           platformStats
         },
         breakdown: {
