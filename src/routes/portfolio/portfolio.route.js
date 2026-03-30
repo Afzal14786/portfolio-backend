@@ -46,15 +46,9 @@ router.route("/skills")
   .get(getSkills)
   .post(protect, requireAdmin, upload.single("icon"), createSkill);
 
-router.route("/skills")
-  .get(getSkills)
-  .post(protect, requireAdmin, upload.single("icon"), createSkill);
-
 router.route("/skills/:id")
   .put(protect, requireAdmin, upload.single("icon"), updateSkill)
   .delete(protect, requireAdmin, deleteSkill);
-
-router.delete("/skills/:id", protect, requireAdmin, deleteSkill);
 
 export default router;
 

@@ -6,7 +6,7 @@ const projectSchema = new mongoose.Schema({
   status: { type: String, enum: ['inprocess', 'complete'], default: 'inprocess' },
   techStack: [String],
   demoLink: String,
-  githubLink: String,
+  codeLink: String,
   imageUrl: {
     type: String,
     default: "",
