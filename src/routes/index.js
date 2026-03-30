@@ -5,7 +5,7 @@ import adminRoutes from "./admin/index.js";
 
 // Public routes  
 import publicRoutes from "./publicRoutes/index.js";
-import portfolioRoutes from "./portfolio/portfolio.route.js"; // <--- Add this
+import portfolioRoutes from "./portfolio/portfolio.route.js";
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ router.get("/", (req, res) => {
     success: true,
     message: "🚀 Portfolio Dashboard API is running successfully!",
     version: "1.0.0",
-    baseUrl: "http://localhost:8080/api/v1",
+    baseUrl: "http://localhost:5000/api/v1",
     status: "operational",
     timestamp: new Date().toISOString(),
     endpoints: {

@@ -7,7 +7,10 @@ const projectSchema = new mongoose.Schema({
   techStack: [String],
   demoLink: String,
   githubLink: String,
-  imageUrl: String,
+  imageUrl: {
+    type: String,
+    default: "",
+  },
   createdAt: Date
 });
 

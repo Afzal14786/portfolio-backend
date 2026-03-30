@@ -52,7 +52,7 @@ export const protect = async (req, res, next) => {
 
 // Add role-specific middlewares
 export const requireAdmin = (req, res, next) => {
-  if (req.user && req.user.userType === 'admin') {
+  if ((req.user && req.user.userType === 'admin') || req.user.role === "Admin") {
     next();
   } else {
     return res.status(403).json({

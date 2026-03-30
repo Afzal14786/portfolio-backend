@@ -3,7 +3,6 @@ import {projectModel} from "../../models/project/project.model.js";
 export const createProject = async (req, res, next) => {
   try {
     const { title, description, status, techStack, codeLink, demoLink } = req.body;
-    // Assuming multer/cloudinary middleware attaches the image URL to req.file.path
     const imageUrl = req.file ? req.file.path : "";
 
     const project = await projectModel.create({
@@ -14,11 +13,12 @@ export const createProject = async (req, res, next) => {
       codeLink,
       demoLink,
       imageUrl,
-      author_id: req.user._id // Assuming JWT auth middleware sets req.user
+      author_id: req.user._id 
     });
 
     res.status(201).json({ success: true, project });
   } catch (error) {
+    console.error(`Error while creating a project : ${error}`);
     next(error);
   }
 };
@@ -28,6 +28,7 @@ export const getProjects = async (req, res, next) => {
     const projects = await projectModel.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, projects });
   } catch (error) {
+    console.error(`error while fetching projects: ${error}`);
     next(error);
   }
 };
@@ -38,6 +39,7 @@ export const deleteProject = async (req, res, next) => {
     if (!project) return res.status(404).json({ success: false, message: "Project not found" });
     res.status(200).json({ success: true, message: "Project deleted successfully" });
   } catch (error) {
+    console.error(`Error while deleting project : $(error)`);
     next(error);
   }
 };
@@ -82,6 +84,7 @@ export const updateProject = async (req, res, next) => {
 
     res.status(200).json({ success: true, project: updatedProject });
   } catch (error) {
+    console.error(`Error while updatig a project : ${error}`);
     next(error);
   }
 };
