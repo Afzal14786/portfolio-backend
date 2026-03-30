@@ -1,21 +1,24 @@
-import Redis from "ioredis"
-import dotenv from "dotenv"
+import Redis from "ioredis";
+import dotenv from "dotenv";
 
-dotenv.config({quiet: true});
+dotenv.config({ quiet: true });
 
-const redis = new Redis({
-    host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT,
-    password: process.env.REDIS_PASSWORD,
+const redisUrl = process.env.REDIS_URL;
+
+if (!redisUrl) {
+  console.error("REDIS_URL is not defined in environment variables");
+  process.exit(1);
+}
+
+const redis = new Redis(redisUrl);
+
+redis.on("connect", () => {
+  console.log(`Redis connected successfully..`);
 });
 
-redis.on("connect", ()=> {
-    console.log(`Redis connected successfully..`);
-});
-
-redis.on("error", (err)=> {
-    console.error(`Something err while connecting with redis ${err.message}`);
-    process.exit(1);
+redis.on("error", (err) => {
+  console.error(`Something went wrong while connecting to Redis: ${err.message}`);
+  process.exit(1);
 });
 
 export default redis;

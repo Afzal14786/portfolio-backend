@@ -5,6 +5,7 @@ import adminRoutes from "./admin/index.js";
 
 // Public routes  
 import publicRoutes from "./publicRoutes/index.js";
+import portfolioRoutes from "./portfolio/portfolio.route.js"; // <--- Add this
 
 const router = express.Router();
 
@@ -50,6 +51,7 @@ router.use("/", publicRoutes);
 
 // Admin routes (authentication required)
 router.use("/admin", adminRoutes);
+router.use("/portfolio", portfolioRoutes);
 
 // ==================== 404 HANDLER ====================
 router.use(/.*/, (req, res) => {
