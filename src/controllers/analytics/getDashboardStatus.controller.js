@@ -1,13 +1,16 @@
-import {blogModel} from '../../models/blogs/blog.model.js';
-import {likesModel} from '../../models/likes/likes.model.js';
-import {commentModel} from '../../models/comments/comments.model.js';
-import {shareModel} from '../../models/share/share.model.js';
+import { blogModel } from '../../models/blogs/blog.model.js';
+import { likesModel } from '../../models/likes/likes.model.js';
+import { commentModel } from '../../models/comments/comments.model.js';
+import { shareModel } from '../../models/share/share.model.js';
+
+import { projectModel } from '../../models/project/project.model.js'; 
+import { certificateModel } from '../../models/certificate/certificate.model.js';
+import {skillModel}  from '../../models/skills/skills.model.js';
 
 export const getDashboardStats = async (req, res) => {
   try {
     const authorId = req.user._id;
     
-    // Get blog stats
     const blogStats = await blogModel.aggregate([
       { $match: { author: authorId } },
       {
@@ -29,7 +32,6 @@ export const getDashboardStats = async (req, res) => {
       }
     ]);
 
-    // Get engagement stats from external schemas
     const publishedBlogs = await blogModel.find({ 
       author: authorId, 
       status: 'published' 
@@ -37,21 +39,22 @@ export const getDashboardStats = async (req, res) => {
 
     const blogIds = publishedBlogs.map(blog => blog._id);
 
-    const [totalLikes, totalComments, totalShares] = await Promise.all([
-      likesModel.countDocuments({ 
-        target: { $in: blogIds }, 
-        targetType: 'blog' 
-      }),
-      commentModel.countDocuments({ 
-        blog: { $in: blogIds },
-        status: 'active'
-      }),
-      shareModel.countDocuments({ 
-        blog: { $in: blogIds }
-      })
+    const [
+        totalLikes, 
+        totalComments, 
+        totalShares,
+        totalProjects,
+        totalCertificates,
+        totalSkills
+    ] = await Promise.all([
+      likesModel.countDocuments({ target: { $in: blogIds }, targetType: 'blog' }),
+      commentModel.countDocuments({ blog: { $in: blogIds }, status: 'active' }),
+      shareModel.countDocuments({ blog: { $in: blogIds } }),
+      projectModel.countDocuments({}), 
+      certificateModel.countDocuments({}),
+      skillModel.countDocuments({})
     ]);
 
-    // Get trending blogs
     const trendingBlogs = await blogModel.find({ 
       author: authorId, 
       status: 'published' 
@@ -60,14 +63,9 @@ export const getDashboardStats = async (req, res) => {
       .limit(5)
       .select('title slug views likesCount commentsCount shares publishedAt topic tags readTime coverImage');
 
-    // Handle case when no blogs exist
     const stats = blogStats[0] || {
-      totalBlogs: 0,
-      publishedBlogs: 0,
-      draftBlogs: 0,
-      scheduledBlogs: 0,
-      totalViews: 0,
-      totalWords: 0
+      totalBlogs: 0, publishedBlogs: 0, draftBlogs: 0, 
+      scheduledBlogs: 0, totalViews: 0, totalWords: 0
     };
 
     res.json({
@@ -78,7 +76,10 @@ export const getDashboardStats = async (req, res) => {
           totalLikes,
           totalComments,
           totalShares,
-          totalReaders: stats.totalViews || 0  // Use totalViews as readers for now
+          totalReaders: stats.totalViews || 0,
+          totalProjects,
+          totalCertificates,
+          totalSkills
         },
         trending: trendingBlogs
       }
