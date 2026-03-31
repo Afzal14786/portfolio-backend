@@ -125,7 +125,7 @@ const criticalLimiter = createRateLimit(60 * 1000, 5, "Too many attempts, please
 
 // Body parsing with limits
 app.use(express.json({ 
-  limit: "10mb",
+  limit: "20mb",
   verify: (req, res, buf) => {
     req.rawBody = buf;
   }
@@ -133,7 +133,7 @@ app.use(express.json({
 
 app.use(express.urlencoded({ 
   extended: true, 
-  limit: "10mb",
+  limit: "20mb",
   parameterLimit: 100
 }));
 
