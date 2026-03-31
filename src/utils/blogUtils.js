@@ -63,21 +63,16 @@ export const extractExcerpt = (content, length = 200) => {
   if (!content) return '';
   
   try {
-    // Remove HTML tags and get plain text
     const textContent = content
       .replace(/<[^>]*>/g, '')
       .replace(/\s+/g, ' ')
       .trim();
     
-    // Extract excerpt
-    let excerpt = textContent.substring(0, length).trim();
-    
-    // Add ellipsis if content was truncated
     if (textContent.length > length) {
-      excerpt += '...';
+      return textContent.substring(0, length - 3).trim() + '...';
     }
     
-    return excerpt;
+    return textContent.substring(0, length).trim();
   } catch (error) {
     console.error('Error extracting excerpt:', error);
     return content ? content.substring(0, length) : '';

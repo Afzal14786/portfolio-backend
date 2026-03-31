@@ -23,7 +23,7 @@ export const getUserBlogs = async (req, res) => {
     };
 
     const blogs = await blogModel.find(filter)
-      .select('title slug excerpt coverImage status readTime views publishedAt scheduledFor createdAt updatedAt')
+      .select('title slug excerpt coverImage status readTime views topic publishedAt scheduledFor createdAt updatedAt')
       .sort(sortOptions[sort] || { updatedAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);

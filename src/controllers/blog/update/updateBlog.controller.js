@@ -12,17 +12,18 @@ export const updateBlog = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Blog not found' });
     }
 
-    // SECURITY: Remove immutable fields
     delete updates._id;
     delete updates.author;
     delete updates.createdAt;
 
-    // FIX: Bulletproof Excerpt Truncation
     if (updates.excerpt && updates.excerpt.length > 200) {
-      updates.excerpt = updates.excerpt.trim().substring(0, 195) + '...';
+      updates.excerpt = updates.excerpt.trim().substring(0, 196) + '...';
     }
 
-    // Handle slug regeneration if title changed
+    if (!updates.excerpt && blog.excerpt && blog.excerpt.length > 200) {
+      updates.excerpt = blog.excerpt.substring(0, 196) + '...';
+    }
+
     if (updates.title && updates.title !== blog.title) {
       const baseSlug = generateSlug(updates.title);
       let newSlug = baseSlug;

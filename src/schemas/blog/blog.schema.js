@@ -7,8 +7,6 @@ import {
   sanitizeHTML 
 } from '../../utils/blogUtils.js';
 
-
-
 const blogSchema = new mongoose.Schema({
   // basic requirements
   title: { 
@@ -35,7 +33,6 @@ const blogSchema = new mongoose.Schema({
     maxlength: 200 
   }, // Auto-generated from content
   
-
   // Only the admin can create blogs
   author: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -189,9 +186,8 @@ blogSchema.pre('save', function(next) {
     this.content = sanitizeHTML(this.content);
   }
   
-  // Auto-generate excerpt from content
-  if (this.isModified('content') && !this.excerpt) {
-    this.excerpt = extractExcerpt(this.content, 200);
+  if (this.isModified('content') && (!this.excerpt || this.excerpt.trim() === '')) {
+    this.excerpt = extractExcerpt(this.content, 195);
   }
   
   // Calculate word count and read time
@@ -213,6 +209,10 @@ blogSchema.pre('save', function(next) {
   // Extract and track code blocks
   if (this.isModified('content')) {
     this.codeBlocks = extractCodeBlocks(this.content);
+  }
+
+  if (this.excerpt && this.excerpt.length > 200) {
+    this.excerpt = this.excerpt.substring(0, 196).trim() + '...';
   }
 
   next();
@@ -264,6 +264,5 @@ blogSchema.methods.extractAndTrackCodeBlocks = function() {
   
   this.codeBlocks = codeBlocks;
 };
-
 
 export default blogSchema;
