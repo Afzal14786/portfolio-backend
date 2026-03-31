@@ -7,9 +7,7 @@ import bcrypt from "bcryptjs";
 
 export const resetPassword = async (req, res) => {
   try {
-    const { email } = req.body;
-    // console.log("Reset password request for:", email);   -- Testing Purpose
-    
+    const { email } = req.body;    
     if (!email) {
       return res.status(400).json({
         message: "Email is required for resetting the password",
@@ -18,28 +16,23 @@ export const resetPassword = async (req, res) => {
     }
 
     const user = await adminModel.findOne({ email });
-    // console.log("Database query result:", user);   -- Testing Purpose
     
     if (!user) {
-      // Return success even if user doesn't exist for security
       return res.status(200).json({
         message: "If an account exists, a password reset link has been sent to your email.",
         success: true,
       });
     }
 
-    // if any existing reset tokens first, then clear it 
     
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
 
-    // Generate password reset token (10 minutes expiry)
     const resetToken = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
 
     const resetUrl = `${process.env.DASHBOARD_URL}/reset-password?token=${resetToken}`;
-
-    // Use the dedicated token reset template
+    console.log(`reset link : ${resetUrl} : dashboard url : ${process.env.DASHBOARD_URL}`)
     const emailTemplate = getPasswordResetLinkTemplate(resetUrl, user.name, 10);
 
     await sendEmail({
