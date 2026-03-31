@@ -23,7 +23,7 @@ const uploadToCloudinary = (buffer, folder = "portfolio", resourceType = "auto")
         folder,
         resource_type: resourceType,
         allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf', 'doc', 'docx'],
-        format: 'webp', // Auto-convert images to WebP
+        format: 'webp',
       },
       (error, result) => {
         if (error) reject(error);

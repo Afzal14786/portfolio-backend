@@ -1,14 +1,33 @@
-import {skillModel} from "../../models/skills/skills.model.js";
+import { skillModel } from "../../models/skills/skills.model.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../../config/cloudinary.js";
+
+const extractPublicId = (url) => {
+  if (!url) return null;
+  try {
+    const parts = url.split('/upload/');
+    if (parts.length !== 2) return null;
+    const pathWithoutVersion = parts[1].replace(/^v\d+\//, '');
+    return pathWithoutVersion.substring(0, pathWithoutVersion.lastIndexOf('.'));
+  } catch (error) {
+    return null;
+  }
+};
 
 export const createSkill = async (req, res, next) => {
   try {
     const { title, tags } = req.body;
-    const skill_icon = req.file ? req.file.path : "";
+    let icon = "";
+
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer, "portfolio/skills");
+      icon = result.secure_url;
+    }
 
     const skill = await skillModel.create({ 
       title, 
-      skill_icon, 
-      tags: tags ? JSON.parse(tags) : [] 
+      icon, 
+      tags: tags ? JSON.parse(tags) : [],
+      user_id: req.user._id 
     });
     
     res.status(201).json({ success: true, skill });
@@ -19,7 +38,7 @@ export const createSkill = async (req, res, next) => {
 
 export const getSkills = async (req, res, next) => {
   try {
-    const skills = await skillModel.find();
+    const skills = await skillModel.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, skills });
   } catch (error) {
     next(error);
@@ -44,9 +63,13 @@ export const updateSkill = async (req, res, next) => {
       updateData.tags = typeof tags === 'string' ? JSON.parse(tags) : tags;
     }
 
-    // Override existing Cloudinary image ONLY if a new one is uploaded
     if (req.file) {
-      updateData.skill_icon = req.file.path;
+      if (skill.icon) {
+        const publicId = extractPublicId(skill.icon);
+        if (publicId) await deleteFromCloudinary(publicId).catch(e => console.error(e));
+      }
+      const result = await uploadToCloudinary(req.file.buffer, "portfolio/skills");
+      updateData.icon = result.secure_url;
     }
 
     const updatedSkill = await skillModel.findByIdAndUpdate(
@@ -68,6 +91,11 @@ export const deleteSkill = async (req, res, next) => {
     
     if (!skill) {
       return res.status(404).json({ success: false, message: "Skill not found" });
+    }
+
+    if (skill.icon) {
+      const publicId = extractPublicId(skill.icon);
+      if (publicId) await deleteFromCloudinary(publicId).catch(e => console.error(e));
     }
 
     res.status(200).json({ success: true, message: "Skill deleted successfully" });
