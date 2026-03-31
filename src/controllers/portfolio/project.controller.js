@@ -1,9 +1,27 @@
-import {projectModel} from "../../models/project/project.model.js";
+import { projectModel } from "../../models/project/project.model.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../../config/cloudinary.js"; 
+
+const extractPublicId = (url) => {
+  if (!url) return null;
+  try {
+    const parts = url.split('/upload/');
+    if (parts.length !== 2) return null;
+    const pathWithoutVersion = parts[1].replace(/^v\d+\//, '');
+    return pathWithoutVersion.substring(0, pathWithoutVersion.lastIndexOf('.'));
+  } catch (error) {
+    return null;
+  }
+};
 
 export const createProject = async (req, res, next) => {
   try {
     const { title, description, status, techStack, codeLink, demoLink } = req.body;
-    const imageUrl = req.file ? req.file.path : "";
+    let imageUrl = "";
+
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer, "portfolio/projects");
+      imageUrl = result.secure_url;
+    }
 
     const project = await projectModel.create({
       title,
@@ -37,54 +55,64 @@ export const deleteProject = async (req, res, next) => {
   try {
     const project = await projectModel.findByIdAndDelete(req.params.id);
     if (!project) return res.status(404).json({ success: false, message: "Project not found" });
+
+    if (project.imageUrl) {
+      const publicId = extractPublicId(project.imageUrl);
+      if (publicId) {
+        await deleteFromCloudinary(publicId).catch(err => console.error("Cloudinary delete error:", err));
+      }
+    }
+
     res.status(200).json({ success: true, message: "Project deleted successfully" });
   } catch (error) {
-    console.error(`Error while deleting project : $(error)`);
+    console.error(`Error while deleting project : ${error}`);
     next(error);
   }
 };
 
-// Add this below your deleteProject function
 export const updateProject = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { title, description, status, techStack, codeLink, demoLink } = req.body;
 
-    // 1. Find the existing project first
     let project = await projectModel.findById(id);
     if (!project) {
       return res.status(404).json({ success: false, message: "Project not found" });
     }
 
-    // 2. Build the update object with new values, or keep existing ones if not provided
     const updateData = {
       title: title || project.title,
       description: description || project.description,
       status: status || project.status,
-      codeLink: codeLink || project.codeLink,
-      demoLink: demoLink || project.demoLink,
+      codeLink: codeLink !== undefined ? codeLink : project.codeLink,
+      demoLink: demoLink !== undefined ? demoLink : project.demoLink,
     };
 
-    // 3. Handle techStack safely (often sent as stringified JSON from FormData)
     if (techStack) {
       updateData.techStack = typeof techStack === "string" ? JSON.parse(techStack) : techStack;
     }
 
-    // 4. Handle optional new image upload
     if (req.file) {
-      updateData.imageUrl = req.file.path; // New Cloudinary URL overrides the old one
+      if (project.imageUrl) {
+        const publicId = extractPublicId(project.imageUrl);
+        if (publicId) {
+          await deleteFromCloudinary(publicId).catch(err => console.error("Cloudinary delete error:", err));
+        }
+      }
+
+      const result = await uploadToCloudinary(req.file.buffer, "portfolio/projects");
+      updateData.imageUrl = result.secure_url;
     }
 
-    // 5. Apply the updates to the database
     const updatedProject = await projectModel.findByIdAndUpdate(
       id,
       updateData,
-      { new: true, runValidators: true } // Return the updated document
+      { new: true, runValidators: true } 
     );
 
     res.status(200).json({ success: true, project: updatedProject });
   } catch (error) {
-    console.error(`Error while updatig a project : ${error}`);
+    console.error(`Error while updating a project : ${error}`);
     next(error);
   }
 };
