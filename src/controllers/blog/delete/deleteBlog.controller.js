@@ -1,13 +1,12 @@
-import {blogModel} from "../../../models/blogs/blog.model.js"
-import {likesModel} from '../../../models/likes/likes.model.js';
-import {commentModel} from '../../../models/comments/comments.model.js';
-import {shareModel} from '../../../models/share/share.model.js';
+import { blogModel } from "../../../models/blogs/blog.model.js"
+import { likesModel } from '../../../models/likes/likes.model.js';
+import { commentModel } from '../../../models/comments/comments.model.js';
+import { shareModel } from '../../../models/share/share.model.js';
 
 export const deleteBlog = async (req, res) => {
   try {
     const { id } = req.params;
     const { hardDelete = false } = req.body;
-
     const blog = await blogModel.findOne({ _id: id, author: req.user._id });
 
     if (!blog) {
@@ -18,7 +17,6 @@ export const deleteBlog = async (req, res) => {
     }
 
     if (hardDelete) {
-      // Hard delete - remove blog and all associated data
       await Promise.all([
         blogModel.findByIdAndDelete(id),
         commentModel.deleteMany({ blog: id }),
@@ -26,24 +24,27 @@ export const deleteBlog = async (req, res) => {
         shareModel.deleteMany({ blog: id })
       ]);
 
-      res.json({
+      return res.json({
         success: true,
         message: 'Blog permanently deleted'
       });
     } else {
-      // Soft delete - archive the blog
-      blog.status = 'archived';
-      await blog.save();
+      await blogModel.findByIdAndUpdate(
+        id, 
+        { status: 'archived' }, 
+        { new: true, runValidators: false } 
+      );
 
-      res.json({
+      return res.json({
         success: true,
         message: 'Blog archived successfully'
       });
     }
   } catch (error) {
+    console.error("Blog Delete Error: ", error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message || 'An internal server error occurred while deleting the blog.'
     });
   }
 };

@@ -1,18 +1,25 @@
-import {blogModel} from '../../../models/blogs/blog.model.js';
+import { blogModel } from '../../../models/blogs/blog.model.js';
 import { generateSlug } from '../../../utils/blogUtils.js';
 
 export const updateBlog = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const updates = { ...req.body };
 
     const blog = await blogModel.findOne({ _id: id, author: req.user._id });
 
     if (!blog) {
-      return res.status(404).json({
-        success: false,
-        error: 'Blog not found'
-      });
+      return res.status(404).json({ success: false, error: 'Blog not found' });
+    }
+
+    // SECURITY: Remove immutable fields
+    delete updates._id;
+    delete updates.author;
+    delete updates.createdAt;
+
+    // FIX: Bulletproof Excerpt Truncation
+    if (updates.excerpt && updates.excerpt.length > 200) {
+      updates.excerpt = updates.excerpt.trim().substring(0, 195) + '...';
     }
 
     // Handle slug regeneration if title changed
@@ -28,12 +35,14 @@ export const updateBlog = async (req, res) => {
       updates.slug = newSlug;
     }
 
-    // Update version
-    updates.version = blog.version + 1;
+    if (typeof blog.version === 'number') {
+      updates.version = blog.version + 1;
+    } else {
+      updates.version = 1; 
+    }
     updates.lastEditedBy = req.user._id;
 
-    // Apply updates
-    Object.assign(blog, updates);
+    blog.set(updates);
     await blog.save();
 
     res.json({
@@ -42,9 +51,10 @@ export const updateBlog = async (req, res) => {
       message: 'Blog updated successfully'
     });
   } catch (error) {
+    console.error("Blog Update Error: ", error);
     res.status(400).json({
       success: false,
-      error: error.message
+      error: error.message || 'Validation failed while updating the blog.'
     });
   }
 };

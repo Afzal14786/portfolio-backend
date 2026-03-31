@@ -65,8 +65,8 @@ export const extractExcerpt = (content, length = 200) => {
   try {
     // Remove HTML tags and get plain text
     const textContent = content
-      .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .replace(/<[^>]*>/g, '')
+      .replace(/\s+/g, ' ')
       .trim();
     
     // Extract excerpt
