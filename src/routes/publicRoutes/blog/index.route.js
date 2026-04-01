@@ -6,7 +6,7 @@ import { optionalAuth } from "../../../middlewares/optionalAuth.js";
 
 // blog controllers
 import { 
-  getAllBlogs, 
+  getPublishedBlogs, 
   getBlogBySlug 
 } from "../../../controllers/blog/index.js";
 
@@ -43,11 +43,9 @@ import {
 
 // ==================== BLOG VIEWING ROUTES (PUBLIC) ====================
 
-// Get all published blogs (no auth required)
-router.get("/", getAllBlogs);                    // GET /blogs
-
-// Get blog by slug (no auth required)
-router.get("/:slug", getBlogBySlug);             // GET /blogs/:slug
+router.get('/published', getPublishedBlogs);
+router.get('/', getPublishedBlogs);
+router.get("/:slug", optionalAuth, getBlogBySlug);
 
 // ==================== BLOG COMMENTS ROUTES ====================
 
