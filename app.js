@@ -15,6 +15,7 @@ import { fileURLToPath } from "url";
 import connectDB from "./src/config/database.js";
 import routes from "./src/routes/index.js";
 import refreshRouter from './src/routes/auth/refresh.route.js';
+import { passport } from "./src/config/passport.js";
 
 // Environment Setup
 dotenv.config();
@@ -227,8 +228,6 @@ try {
 }
 
 // ==================== ROUTES WITH RATE LIMITING ====================
-
-// Apply general rate limiting to all routes
 app.use(generalLimiter);
 
 // Apply specific rate limiting to sensitive routes
@@ -244,7 +243,7 @@ app.use("/api/v1/admin/blogs", strictLimiter);
 
 // Refresh token route
 app.use('/api/v1/auth', refreshRouter);
-
+app.use(passport.initialize());
 // ==================== MAIN API ROUTES ====================
 app.use("/api/v1", routes);
 

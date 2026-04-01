@@ -1,17 +1,9 @@
 import passport from 'passport';
 import GoogleStrategy from 'passport-google-oauth20';
 import GitHubStrategy from 'passport-github2';
-import User from '../models/User.js';
-import jwt from 'jsonwebtoken';
+import { adminModel as User } from '../models/admin/user.model.js'; 
 
-// Generate JWT
-const generateToken = (user) => {
-  return jwt.sign(
-    { id: user._id, email: user.email, role: user.role || 'admin' },
-    process.env.JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-};
+import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
 
 // Google Strategy
 passport.use(
@@ -19,24 +11,33 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: '/api/auth/google/callback',
+      callbackURL: '/api/v1/admin/auth/oauth/google/callback', 
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
         let user = await User.findOne({ email: profile.emails[0].value });
         if (!user) {
           user = await User.create({
-            fullname: profile.displayName,
+            name: profile.displayName,
             email: profile.emails[0].value,
             user_name: profile.username || profile.emails[0].value.split('@')[0],
             profile_image: profile.photos[0]?.value,
             login_method: 'google',
-            is_verified: true,
+            isVerified: true,
+            isActive: true,
+            role: 'Admin'
           });
         }
-        const token = generateToken(user);
-        return done(null, { user, token });
+
+        const newAccessToken = generateAccessToken(user);
+        const newRefreshToken = generateRefreshToken(user);
+
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
+        return done(null, { user, accessToken: newAccessToken, refreshToken: newRefreshToken });
       } catch (err) {
+        console.error(`Error while google login ${err}`);
         return done(err, null);
       }
     }
@@ -49,7 +50,7 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: '/api/auth/github/callback',
+      callbackURL: '/api/v1/admin/auth/oauth/github/callback',
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -57,17 +58,26 @@ passport.use(
         let user = await User.findOne({ email });
         if (!user) {
           user = await User.create({
-            fullname: profile.displayName || profile.username,
+            name: profile.displayName || profile.username,
             email: email,
             user_name: profile.username,
             profile_image: profile.photos?.[0]?.value,
             login_method: 'github',
-            is_verified: true,
+            isVerified: true,
+            isActive: true,
+            role: 'Admin'
           });
         }
-        const token = generateToken(user);
-        return done(null, { user, token });
+
+        const newAccessToken = generateAccessToken(user);
+        const newRefreshToken = generateRefreshToken(user);
+
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
+        return done(null, { user, accessToken: newAccessToken, refreshToken: newRefreshToken });
       } catch (err) {
+        console.error(`Error while github login : ${err}`)
         return done(err, null);
       }
     }
@@ -77,4 +87,4 @@ passport.use(
 passport.serializeUser((data, done) => done(null, data));
 passport.deserializeUser((obj, done) => done(null, obj));
 
-export { passport, generateToken };
+export { passport };

@@ -3,14 +3,16 @@ import loginRoutes from "./login.route.js";
 import registerRoutes from "./register.route.js";
 import otpRoutes from "./Otp.route.js";
 import registrationOtpRoutes from "./registrationOtp.route.js";
+import oauthRoutes from "./oauth.route.js";
 
 const router = express.Router();
 
 // ==================== AUTH ROUTES ====================
 router.use("/signin", loginRoutes);
 router.use("/signup", registerRoutes);
-router.use("/auth-otp", registrationOtpRoutes); // for non-authorized persons
-router.use("/otp", otpRoutes); // for only authorized persons
+router.use("/auth-otp", registrationOtpRoutes);
+router.use("/otp", otpRoutes);
+router.use("/oauth", oauthRoutes);
 
 // ==================== AUTH HEALTH CHECK ====================
 router.get("/", (req, res) => {
