@@ -1,238 +1,143 @@
 # 🌐 Integrated Portfolio And Blog Management System -- Backend
 
-## 🚀 Overview
+![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
+![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
+![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
+![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
 
-This repository houses the robust backend API built for my personal portfolio and integrated blog management system. Its primary function is to serve as a secure blog management system for the admin dashboard and provide fast, publicly accessible endpoints for the main portfolio website. In the main website public users are able to `view`, `read`, `like` and `comment` in the blog . 
-
-The API is built following RESTful principles with dual authentication system `(Admin & Public users)` and `OTP-based verification` for enhanced security.
-
-### 📚 API Documentation
-
-**Interactive Swagger UI**: [`http://localhost:8080/api-docs`](http://localhost:8080/api-docs)
-
-**Base URL**: `http://localhost:8080/api/v1`
-
-### 💻 Technology Stack
-
-| **Component** | **Technology** | **Notes** |
-| :--- | :--- | :--- |
-| **Runtime** | Node.js | Asynchronous, event-driven JavaScript runtime environment. |
-| **Framework** | Express.js | Fast, unopinionated, minimalist web framework for Node.js. |
-| **Language** | JavaScript (JS) | Backend logic is written in pure JavaScript for deployment efficiency. |
-| **Database** | MongoDB / Mongoose | Flexible NoSQL database for content storage and Mongoose for schema management. |
-| **Documentation** | OpenAPI 3.0 | Comprehensive API documentation with Swagger UI |
+This repository contains the **RESTful API Core Engine** for the Integrated Portfolio & Blog Management System. Built on a highly scalable MVC architecture, it securely serves data to both the Public Client Frontend and the Secure Admin Dashboard.
 
 ---
 
-## ✨ Core Features
+## 🎯 Key Technical Achievements
 
-### 🔐 Dual Authentication System
-
-| **User Type** | **Features** | **OTP Verification** |
-| :--- | :--- | :--- |
-| **Admin Users** | Full dashboard access, content management, user management | Registration, Login, Password Reset, Email Update |
-| **Public Users** | Portfolio access, contact forms, blog reading | Registration, Login, Password Reset |
-
-### 📊 Authentication Flow
-
-**Registration Flow:**
-1. `POST /{user-type}-auth/signup/register` - Submit registration details
-2. Check email for OTP
-3. `POST /{user-type}-auth/signup/verify-otp` - Verify OTP to activate account
-
-**Login Flow:**
-1. `POST /{user-type}-auth/signin/login` - Submit credentials
-2. Check email for OTP
-3. `POST /{user-type}-auth/signin/verify` - Verify OTP to get access token
-
-### 🛡️ Security Features
-- **OTP Verification** for all critical operations
-- **JWT Tokens** with HTTP-only cookies for refresh tokens
-- **BCrypt Password Hashing** with salt rounds 12
-- **Rate Limiting** and account locking mechanisms
-- **CORS Protection** with configurable origins
+- **Advanced Security & Auth:** Implements a robust JWT (JSON Web Token) strategy utilizing both **Access and HTTP-Only Refresh Tokens**. Includes Nodemailer-powered OTP (One Time Password) email verification for registration and password resets.
+- **High-Performance Caching:** Integrates **Redis** to cache frequently accessed public data (like the active portfolio profile and published blogs), drastically reducing MongoDB query loads and latency.
+- **Enterprise Media Management:** Completely decoupled from local file storage. Uses `Multer` combined with the `Cloudinary` API to securely upload, optimize, and serve images (avatars, banners, blog covers, certificates).
+- **Complex Relational NoSQL:** Utilizes Mongoose to create a highly relational document structure. Blogs are intrinsically linked to dynamic references for Comments, Likes, Shares, and Author Profiles.
+- **Modular Service-Oriented Architecture:** Business logic is abstracted out of controllers into a dedicated `services` layer (e.g., `email.service.js`, `otp.service.js`), making the codebase highly testable and maintainable.
+- **Comprehensive API Documentation:** Includes integrated **Swagger UI** for beautiful, interactive API endpoint documentation and testing.
 
 ---
 
-## 🏗️ API Architecture
+## 🛠️ Technology Stack
 
-### 📍 Endpoint Structure
--   `http://localhost:8080/api/v1/{category}/{endpoint}`
-
-
-### 🔄 System Workflow
-
-| **Step** | **Actor** | **Action** | **API Route** |
-| :--- | :--- | :--- | :--- |
-| **1. Health Check** | Any User | `GET /` | API status verification |
-| **2. Admin Registration** | New Admin | `POST /admin-auth/signup/register` | OTP sent to email |
-| **3. OTP Verification** | New Admin | `POST /admin-auth/signup/verify-otp` | Account activation |
-| **4. Admin Login** | Admin User | `POST /admin-auth/signin/login` | OTP sent to email |
-| **5. Login Verification** | Admin User | `POST /admin-auth/signin/verify` | JWT token issued |
-| **6. Content Management** | Admin User | Various protected routes | Bearer token required |
-| **7. Public Access** | Public Site | Public routes | Unauthenticated access |
+| Technology | Purpose |
+| :--- | :--- |
+| **Node.js & Express** | Core runtime and web application framework for handling routing and HTTP requests. |
+| **MongoDB & Mongoose** | Primary NoSQL database and Object Data Modeling (ODM) library. |
+| **Redis** | In-memory data structure store used for high-speed API response caching. |
+| **JWT & Bcrypt** | Secure password hashing and stateless session management. |
+| **Cloudinary** | Cloud-based image and video management service. |
+| **Nodemailer** | SMTP client for sending transactional emails (Welcome, OTP, Password Reset). |
+| **Swagger (OpenAPI)** | Auto-generated interactive API documentation interface. |
 
 ---
 
-## 🎯 Quick Start Guide
+## 📂 System Architecture
 
-### 1. Health Checks
+The application strictly adheres to a **Controller-Service-Model** pattern, ensuring separation of concerns and preventing "fat controllers."
+
+```text
+src/
+├── config/               # Database, Cloudinary, Redis, and Passport configurations
+├── controllers/          # Request/Response handlers (Admin, Public, Blog, Portfolio)
+├── emails/               # Nodemailer setup and dynamic HTML Email Templates
+├── middlewares/          # Auth guards, Error Handlers, and Multer upload intercepts
+├── models/               # Mongoose Database Schemas (User, Blog, Comments, Journey, etc.)
+├── routes/               # API endpoint definitions (Public vs. Protected paths)
+├── schemas/              # Input validation schemas (Preventing bad data ingestion)
+├── services/             # Reusable business logic (Auth, Email, OTP logic)
+└── utils/                # Helper functions (Token generation, URL formatting)
+docs/
+└── swagger.yaml          # OpenAPI specification file
+app.js                    # Express app initialization and global middleware
+index.js                  # Application entry point and server listener
+```  
+
+## 🗄️ Database Entity Relationship Overview  
+While MongoDB is NoSQL, this system utilizes advanced Mongoose `ref` populations to maintain relational integrity:  
+
+* **Admin User** (`user.model`): Holds universal configuration (Bio, Socials, Hobbies) mapped to the `/me` frontend endpoint.  
+
+* **Public User** (`publicUser.model`): Separate collection for readers who authenticate to Like or Comment.  
+
+* **Blogs** (`blog.model`): The central entity. Contains an array of Tags, Status (Draft/Published), and references the Admin `author`.  
+
+* **Interactions** (`comments`, `likes`, `share`): Decoupled collections that reference a specific `Blog_ID` and `User_ID`, preventing the main Blog document from exceeding MongoDB's 16MB size limit as engagement grows.  
+
+## 🔐 The Authentication Flow  
+
+1. **Login:** User authenticates with email/password.  
+2. **Tokens Issued:** Server issues a short-lived `accessToken` (sent in JSON) and a long-lived `refreshToken` (set as a secure, HTTP-only cookie).
+3. **Protected Routes:** The `middleware.auth.js` intercepts requests, verifying the `accessToken`.
+4. **Token Refresh:** If the access token expires, the client calls `/auth/refresh`. The server validates the HTTP-only cookie against the database and issues a new access token without requiring re-login.  
+
+## 💻 Local Setup & Installation  
+
+**Prerequisites**  
+* Node.js (v16+ recommended) 
+* MongoDB instance (Local or Atlas)
+* Redis Server (Running locally or via cloud provider)
+* Cloudinary Account (Free tier)  
+
+**1. Clone the repository** 
 ```bash
-# API Root
-curl http://localhost:8080/api/v1/
+git clone https://github.com/Afzal14786/portfolio-backend.git
+cd portfolio-backend
+```  
 
-# Admin Auth Status
-curl http://localhost:8080/api/v1/admin-auth
-
-# Public Auth Status  
-curl http://localhost:8080/api/v1/public-auth
-``` 
-
-### 2. Admin Registration & Login
-
+**2. Install dependencies**  
 ```bash
-# 1. Register Admin
-curl -X POST http://localhost:8080/api/v1/admin-auth/signup/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Admin User",
-    "user_name": "adminuser", 
-    "email": "admin@example.com",
-    "password": "password123"
-  }'
+npm install
+```  
+ **3. Set up Environment Variables**  
+ Create a `.env` file in the root directory. You must configure the following keys:  
 
-# 2. Verify OTP (check email for code)
-curl -X POST http://localhost:8080/api/v1/admin-auth/signup/verify-otp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@example.com",
-    "otp": "123456"
-  }'
+```text
+# Server
+PORT=5000
+NODE_ENV=development
 
-# 3. Login
-curl -X POST http://localhost:8080/api/v1/admin-auth/signin/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@example.com",
-    "password": "password123"
-  }'
+# Database & Cache
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/portfolio
+REDIS_URL=redis://localhost:6379
 
-# 4. Verify Login OTP
-curl -X POST http://localhost:8080/api/v1/admin-auth/signin/verify \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@example.com", 
-    "otp": "123456"
-  }'
-```
+# JWT Secrets
+JWT_ACCESS_SECRET=your_super_secret_access_key
+JWT_REFRESH_SECRET=your_super_secret_refresh_key
 
-### 3. Public User Flow
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# SMTP (Nodemailer)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+
+GOOGLE_CLIENT_ID=google_client_id
+GOOGLE_CLIENT_SECRET=google_client_secret
+GITHUB_CLIENT_ID= github_client_id 
+GITHUB_CLIENT_SECRET=githu_client_secret
+```  
+
+**4. Run the Server**  
 ```bash
-# Register Public User
-curl -X POST http://localhost:8080/api/v1/public-auth/signup/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Public User",
-    "user_name": "publicuser",
-    "email": "user@example.com",
-    "password": "password123"
-  }'
-```
+# Development mode (with nodemon)
+npm run dev
 
-## 📋 API Categories 
+# Production mode
+npm start
+```  
+*The server will start on `http://localhost:5000.`*  
 
-### 🔍 Health Checks
--   `GET /` - API Root Health Check
--   `GET /admin-auth` - Admin Auth Status
--   `GET /public-auth` - Public Auth Status
-
-### 👑 Admin Authentication
--   `POST /admin-auth/signup/register` - Register new admin
--   `POST /admin-auth/signup/verify-otp` - Verify registration OTP
--   `POST /admin-auth/signin/login` - Admin login request
--   `POST /admin-auth/signin/verify` - Verify login OTP
--   `POST /admin-auth/signin/logout` - Admin logout
--   `GET /admin-auth/auth-otp/status` - Check OTP status
--   `POST /admin-auth/auth-otp/resend` - Resend OTP
-
-### 👥 Public Authentication
--   `POST /public-auth/signup/register` - Register public user
--   `POST /public-auth/signup/verify-otp` - Verify registration OTP
--   `POST /public-auth/signin/login` - Public user login
--   `POST /public-auth/signin/verify` - Verify login OTP
--   `POST /public-auth/login/logout` - Public user logout
-
-### 🔧 OTP Operations
--   `POST /admin-auth/otp/resend` - Resend OTP (Admin)
--   `GET /admin-auth/otp/status` - Check OTP status (Admin)
--   `POST /public-auth/otp/resend` - Resend OTP (Public)
--   `GET /public-auth/otp/status` - Check OTP status (Public)
-
----
-
-## 🛡️ Security & Authentication
-
-### Required Headers for Protected Routes
-```http
-Authorization: Bearer your_jwt_token_here
-Content-Type: application/json
-```
-
-### OTP Types Supported
-**For Both Admin & Public:**
--   `registration` - User registration
--   `login` - User login
--   `email_update` - Email change verification
--   `password_reset` - Password reset requests
--   `password_change` - Password change requests
-
-**Admin Only:**
--   `blog_management` - Blog Management
-
----
-
-## 🧪 Testing & Development
-
-### Testing Tips
-1. Use different emails for admin and public user testing
-2. Check server logs for OTP values during development
-3. Password requirements: Minimum 8 characters
-4. Username requirements: 3-20 characters, alphanumeric + underscore only
-
-### Example Authenticated Request
-```bash
-# Check OTP status (requires authentication)
-curl -X GET "http://localhost:8080/api/v1/admin-auth/otp/status?type=password_reset" \
-  -H "Authorization: Bearer your_access_token_here"
-```
-
-### Success Response Format
-```json
-{
-  "success": true,
-  "message": "Operation completed successfully",
-  "data": {
-    "user": {
-      "name": "Admin User",
-      "email": "admin@example.com",
-      "userType": "admin"
-    },
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
-
----
-
-## 🔗 Useful Links
-
--   🔄 Live API: `http://localhost:8080/api/v1`
--   📚 Interactive Docs: `http://localhost:8080/api-docs`
--   ❤️ Health Check: `http://localhost:8080/health`
+**5. View API Documentation**  
+Once the server is running, navigate to:  
+`http://localhost:5000/api-docs` to view the interactive Swagger UI.
 
 --- 
-*__Maintainer__: Md Afzal Ansari*  
-*__Email__: mdafzal14777@gmail.com*
-
---- 
-*Last Updated: Nov 9, 2025*
+*This project is submitted as part of the BCA Final Year Project requirement.*
