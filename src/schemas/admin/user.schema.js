@@ -33,9 +33,17 @@ export const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function () {
+        return this.login_method === "email" || !this.login_method;
+      },
       minlength: [8, "Password must be at least 8 characters"],
       select: false,
+    },
+
+    login_method: {
+      type: String,
+      default: "email",
+      enum: ["email", "google", "github"],
     },
 
     role: {
