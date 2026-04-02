@@ -21,7 +21,10 @@ passport.use(
             name: profile.displayName,
             email: profile.emails[0].value,
             user_name: profile.username || profile.emails[0].value.split('@')[0],
-            profile_image: profile.photos[0]?.value,
+            profile_image: {
+              url: profile.photos[0]?.value || "",
+              public_id: "google_oauth_image"
+            },
             login_method: 'google',
             isVerified: true,
             isActive: true,
@@ -61,7 +64,10 @@ passport.use(
             name: profile.displayName || profile.username,
             email: email,
             user_name: profile.username,
-            profile_image: profile.photos?.[0]?.value,
+            profile_image: {
+              url: profile.photos?.[0]?.value || "",
+              public_id: "github_oauth_image"
+            },
             login_method: 'github',
             isVerified: true,
             isActive: true,
